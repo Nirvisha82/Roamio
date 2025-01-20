@@ -8,6 +8,6 @@ Beyond planning, Roamio equips you with practical travel tips, packing guides, a
 
 ## Members:
 - Nirvisha Soni - 47638268 (Frontend)
-- Riddhi Mehta - 28648754 (Frondend)
+- Riddhi Mehta - 28648754 (Frontend)
 - Harsh Khanna - 94102770 (Backend)
 - Neel Malwatkar - 68517665 (Backend)
