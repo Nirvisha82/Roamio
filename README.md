@@ -6,8 +6,8 @@ With Roamio, you can create and share detailed itineraries tailored to your trav
 
 Beyond planning, Roamio equips you with practical travel tips, packing guides, and cultural insights, ensuring you’re ready for every aspect of your journey. Whether you're a seasoned adventurer or a first-time traveler, Roamio simplifies the complexities of travel, helping you focus on what matters most: creating unforgettable memories.
 
-Members:
-Nirvisha Soni
-Riddhi Mehta
-Harsh Khanna
-Neel Malwatkar
+## Members:
+- Nirvisha Soni - 47638268 (Frontend)
+- Riddhi Mehta - 28648754 (Frondend)
+- Harsh Khanna - 94102770 (Backend)
+- Neel Malwatkar - 68517665 (Backend)
