@@ -1,0 +1,9 @@
+# Go-related
+/backend/*.exe
+/backend/*.out
+/backend/vendor/
+/backend/db/*.db
+
+# Node.js-related
+/frontend/node_modules/
+/frontend/dist/
