@@ -9,7 +9,7 @@ import (
 func main() {
 	router := gin.Default()
 	router.GET("/users", api.GetAllUsers)
-	router.POST("/users", api.CreateUser)
+	router.POST("/register", api.CreateUser)
 	router.Run(":8080")
 
 	// http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
