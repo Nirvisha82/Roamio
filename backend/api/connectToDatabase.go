@@ -3,6 +3,7 @@ package api
 import (
 	"log"
 	"os"
+	"roamio/backend/models"
 
 	"github.com/joho/godotenv"
 	"gorm.io/driver/sqlite"
@@ -26,5 +27,11 @@ func databaseConnection() (*gorm.DB, error) {
 	if err != nil {
 		return nil, err
 	}
+	// Automatically migrate the schema for the User model
+	err = database.AutoMigrate(&models.User{})
+	if err != nil {
+		log.Fatalf("Failed to migrate database: %v", err)
+	}
+
 	return database, nil
 }
