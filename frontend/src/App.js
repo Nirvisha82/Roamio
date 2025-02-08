@@ -1,16 +1,18 @@
-import './App.css';
-// import {BrowserRouter, Routes, Route} from "react-router-dom";
-// import Login from './components';
-import React from 'react';
-
-import LandingPage from "./components/LandingPage";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Signup from "./pages/Signup";
+import Login from "./pages/Login";
+import ToggleAuth from "./pages/ToggleAuth";
 
 function App() {
-  return (
-    <div>
-      <LandingPage />
-    </div>
-  );
+    return (
+        <Router>
+            <Routes>
+                <Route path="/login" element={<Login />} />
+                <Route path="/signup" element={<Signup />} />
+                <Route path="/" element={<ToggleAuth />} />
+            </Routes>
+        </Router>
+    );
 }
 
 export default App;
