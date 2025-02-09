@@ -10,6 +10,8 @@ import feature1 from "../images/feature1.jpg";
 import feature2 from "../images/feature2.jpg";
 import feature3 from "../images/feature3.jpg";
 import feature4 from "../images/feature4.jpg";
+import { State, City } from "country-state-city";
+import Select from "react-select";
 
 const features = [
   { title: "Personalized Itineraries", description: "Create detailed travel plans tailored to your style.", image: feature1 },
@@ -21,6 +23,20 @@ const features = [
 const LandingPage = () => {
   const [selectedFeature, setSelectedFeature] = useState(features[0]);
   const [isSignUp, setIsSignUp] = useState(true);
+  const [selectedLocation, setSelectedLocation] = useState(null);
+
+  // Fetch all U.S. states
+  const states = State.getStatesOfCountry("US");
+
+  // Combine states and cities into one dropdown list
+  const locationOptions = states.flatMap((state) => [
+    { value: state.isoCode, label: `🗺️ ${state.name} (${state.isoCode})`, isState: true },
+    ...City.getCitiesOfState("US", state.isoCode).map((city) => ({
+      value: city.name,
+      label: `🏙️ ${city.name}, ${state.isoCode}`,
+      isState: false,
+    })),
+  ]);
 
   return (
     <div className="bg-[#F1F0E8] min-h-screen text-[#4A7C88]">
@@ -28,16 +44,16 @@ const LandingPage = () => {
       <nav className="flex justify-between items-center p-5 bg-[#38496a] shadow-md h-16 fixed top-0 w-full z-50">
         <img src={logo} alt="Roamio Logo" className="h-12 w-auto" />
         <div className="flex space-x-6">
-          <a href="#" className="text-white hover:text-[#89A8B2] transition">Register</a>
+          <a href="#register" className="text-white hover:text-[#89A8B2] transition">Register</a>
           <a href="#features" className="text-white hover:text-[#89A8B2] transition">Our Features</a>
-          <a href="#" className="text-white hover:text-[#89A8B2] transition">About Us</a>
-          <a href="#" className="text-white hover:text-[#89A8B2] transition">Our Team</a>
+          <a href="#aboutus" className="text-white hover:text-[#89A8B2] transition">About Us</a>
+          <a href="#team" className="text-white hover:text-[#89A8B2] transition">Our Team</a>
         </div>
       </nav>
 
       {/* Hero Section */}
 {/* Hero Section */}
-<div className="flex flex-col md:flex-row justify-between items-center pt-30 px-6 md:px-20">
+<div className="flex flex-col md:flex-row justify-between items-center min-h-screen pt-30 px-6 md:px-20">
         <motion.div 
           className="max-w-xl"
           initial={{ x: -100, opacity: 0 }} 
@@ -61,7 +77,7 @@ const LandingPage = () => {
           animate={{ x: 0, opacity: 1 }} 
           transition={{ duration: 0.8, ease: "easeOut" }}
         >
-          <img src={landingimage} alt="Travel" className="w-full h-full object-cover shadow-md" />
+          <img src={landingimage} alt="Travel" className="w-full h-full min-h-screen object-cover shadow-md" />
         </motion.div>
       </div>
 
@@ -96,7 +112,7 @@ const LandingPage = () => {
       </section>
 
       {/* Login/Signup Section */}
-      <section className="relative h-screen flex items-center justify-center bg-[#F1F0E8] overflow-hidden">
+      <section  id="register" className="relative h-screen flex items-center justify-center bg-[#F1F0E8] overflow-hidden">
         <div className="absolute inset-0 bg-fixed bg-cover bg-center opacity-30" style={{ backgroundImage: `url(${parallaximage})` }}></div>
         <div className="relative z-10 max-w-6xl w-full flex items-center">
           <div className="w-1/2 text-center p-10">
@@ -113,13 +129,25 @@ const LandingPage = () => {
             <button onClick={() => setIsSignUp(true)} className={`px-4 py-2 ${isSignUp ? 'bg-[#38496a] text-white' : 'bg-gray-200'} rounded-l-md`}>Sign Up</button>
             <button onClick={() => setIsSignUp(false)} className={`px-4 py-2 ${!isSignUp ? 'bg-[#38496a] text-white' : 'bg-gray-200'} rounded-r-md`}>Login</button>
           </div>
-          <h2 className="text-3xl font-bold text-center text-[#38496a] mb-8">Join Us!</h2>
+          {/*<h2 className="text-3xl font-bold text-center text-[#38496a] mb-8">Join Us!</h2>*/}
           {isSignUp ? (
             <div>
               <h3 className="text-xl font-semibold text-center mb-4">Sign Up</h3>
-              <input type="text" placeholder="Name" className="w-full p-2 mb-3 border rounded" />
-              <input type="email" placeholder="Email" className="w-full p-2 mb-3 border rounded" />
-              <input type="password" placeholder="Password" className="w-full p-2 mb-3 border rounded" />
+              <div className="grid grid-cols-2 gap-4">
+                <input type="text" placeholder="Full Name" className="w-full p-2 mb-3 border rounded" />
+                <input type="text" placeholder="User Name" className="w-full p-2 mb-3 border rounded" />
+                <input type="email" placeholder="Email" className="w-full p-2 mb-3 border rounded" />             
+                <input type="password" placeholder="Password" className="w-full p-2 mb-3 border rounded" />
+                <input type="date" placeholder="Birthdate" className="w-full p-2 mb-3 border rounded" />
+                <Select
+                  options={locationOptions}
+                  value={selectedLocation}
+                  onChange={setSelectedLocation}
+                  placeholder="Select State or City"
+                  className="w-full p-2 mb-3 border rounded"
+                  isSearchable
+                />
+              </div>
               <button className="w-full bg-[#38496a] text-white py-2 rounded">Register</button>
             </div>
           ) : (
