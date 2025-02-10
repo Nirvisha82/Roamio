@@ -1,0 +1,78 @@
+definitions:
+  models.ErrorResponse:
+    properties:
+      error:
+        example: <Description of error>
+        type: string
+    type: object
+  models.SuccessResponse:
+    properties:
+      message:
+        example: <Successful completion of task>
+        type: string
+    type: object
+  models.User:
+    properties:
+      DOB:
+        description: Date of Birth in ISO 8601 format (yyyy-mm-dd)
+        example: yyyy-mm-dd
+        type: string
+      Email:
+        description: Unique email address
+        type: string
+      Fullname:
+        description: Full name of the user
+        type: string
+      Location:
+        description: Location of the user
+        type: string
+      Password:
+        description: Password (hashed)
+        type: string
+      Username:
+        description: Unique username
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: Roamio Engine API routes.
+  title: Roamio Backend API
+  version: "0.1"
+paths:
+  /register:
+    post:
+      consumes:
+      - application/json
+      description: This endpoint allows you to create a new user by providing the
+        required details like username, email, and password.
+      parameters:
+      - description: User Data
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/models.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User registered successfully
+          schema:
+            $ref: '#/definitions/models.SuccessResponse'
+        "400":
+          description: Invalid input data
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "409":
+          description: Username or Email already exists
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Create a new user
+      tags:
+      - users
+swagger: "2.0"
