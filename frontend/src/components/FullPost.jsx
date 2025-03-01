@@ -19,6 +19,14 @@ const FullPost = () => {
   const navigate = useNavigate();
   const post = posts.find((p) => p.id === parseInt(postId));
 
+  const handleFeeds = () => {
+    navigate("/feeds"); 
+  };
+  
+  const handleMyProfile = () => {
+    navigate("/myprofile"); 
+  };
+
   const [comments, setComments] = useState([
     { id: 1, text: "Great post!", replies: [] },
     { id: 2, text: "Thanks for sharing!", replies: [] },
@@ -56,7 +64,8 @@ const FullPost = () => {
       <nav className="flex justify-between items-center p-5 bg-[#38496a] shadow-md h-16 fixed top-0 w-full z-50">
         <img src={logo} alt="Roamio Logo" className="h-12 w-auto" />
         <div className="flex space-x-6">
-          <a href="#" className="text-white hover:text-[#89A8B2] transition">My Profile</a>
+          <a href="#" className="text-white hover:text-[#89A8B2] transition" onClick={handleFeeds}>Home</a>
+          <a href="#" className="text-white hover:text-[#89A8B2] transition" onClick={handleMyProfile}>My Profile</a>
           <a href="#" className="text-white hover:text-[#89A8B2] transition">Logout</a>
         </div>
       </nav>

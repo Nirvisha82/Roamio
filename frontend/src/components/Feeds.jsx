@@ -1,6 +1,6 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom"; 
+import { useNavigate } from "react-router-dom";
 import Select from "react-select";
 import { State, City } from "country-state-city";
 import logo from "../images/logo.png";
@@ -25,7 +25,11 @@ const Feeds = () => {
   const states = State.getStatesOfCountry("US").map((s) => ({ value: s.isoCode, label: s.name }));
   const cities = selectedState ? City.getCitiesOfState("US", selectedState.value).map((c) => ({ value: c.name, label: c.name })) : [];
   const handleCreatePost = () => {
-    navigate("/post"); 
+    navigate("/post");
+  };
+
+  const handleMyProfile = () => {
+    navigate("/myprofile");
   };
 
   useEffect(() => {
@@ -39,7 +43,7 @@ const Feeds = () => {
       <nav className="flex justify-between items-center p-5 bg-[#38496a] shadow-md h-16 fixed top-0 w-full z-50">
         <img src={logo} alt="Roamio Logo" className="h-12 w-auto" />
         <div className="flex space-x-6">
-          <a href="#" className="text-white hover:text-[#89A8B2] transition">My Profile</a>
+          <a href="#" className="text-white hover:text-[#89A8B2] transition" onClick={handleMyProfile}>My Profile</a>
           <a href="#" className="text-white hover:text-[#89A8B2] transition">Logout</a>
         </div>
       </nav>
@@ -55,14 +59,18 @@ const Feeds = () => {
 
         <div className="w-3/4 p-6 bg-[#F1F0E8]">
           <h1 className="text-2xl text-[#4A7C88] font-bold mb-4">
-            {selectedCity && selectedState ? `${selectedCity.label}, ${selectedState.label}` : "Select a State & City"}
+            {selectedCity
+              ? `${selectedCity.label}, ${selectedState?.label || ""}` // Show city and state if both are selected
+              : selectedState
+                ? selectedState.label // Show only state if city is not selected
+                : "Select a State & City"}
           </h1>
           <button
-              onClick={handleCreatePost} 
-              className="mt-6 px-6 py-3 bg-[#4A7C88] text-[#ffffff] font-semibold rounded-lg shadow-md hover:bg-[#38496a] transition"
-            >
-              Create Post
-            </button>
+            onClick={handleCreatePost}
+            className="mt-6 px-6 py-3 bg-[#4A7C88] text-[#ffffff] font-semibold rounded-lg shadow-md hover:bg-[#38496a] transition"
+          >
+            Create Post
+          </button>
 
           {/* Post Cards Section */}
           <div className="mt-8 ml-8 flex flex-col gap-6">

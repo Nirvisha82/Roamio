@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/anchor-is-valid */
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import parallaximage from "../images/Parallax_Image.jpg";
@@ -29,6 +30,7 @@ const PostForm = () => {
       className="fixed top-0 left-0 w-full h-full bg-[#F1F0E8] bg-fixed bg-cover bg-center z-50 p-10 overflow-auto shadow-xl"
       style={{ backgroundImage: `url(${parallaximage})` }}
     >
+
       <div className="max-w-4xl mx-auto bg-[rgba(241,240,232,0.95)] p-8 rounded-2xl shadow-lg">
         <h1 className="text-3xl font-bold mb-6 text-[#2E5A6B]">
           Create Your Travel Itinerary
@@ -43,7 +45,7 @@ const PostForm = () => {
             placeholder="Description"
             className="w-full p-3 border rounded-lg shadow-sm"
           />
-          
+
           {/* Days and Nights Input without Labels */}
           <div className="flex space-x-4">
             <input
@@ -63,10 +65,10 @@ const PostForm = () => {
           </div>
 
           <input
-              type="number"
-              placeholder="Group Size"
-              className="w-full p-3 border rounded-lg shadow-sm"
-            />
+            type="number"
+            placeholder="Group Size"
+            className="w-full p-3 border rounded-lg shadow-sm"
+          />
 
           <input
             type="text"
@@ -95,6 +97,7 @@ const PostForm = () => {
         </form>
       </div>
     </motion.div>
+
   );
 };
 

@@ -1,8 +1,16 @@
+/* eslint-disable jsx-a11y/anchor-is-valid */
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import logo from "../images/logo.png";
+import parallaximage from "../images/Parallax_Image.jpg";
 
 const Profile = () => {
+  const navigate = useNavigate();
   const [profileImage, setProfileImage] = useState(null);
+
+  const handleFeeds = () => {
+    navigate("/feeds"); 
+  };
 
   const userDetails = {
     name: "John Doe",
@@ -31,23 +39,17 @@ const Profile = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F1F0E8]">
+    <div className="overflow-x-hidden min-h-screen bg-fixed bg-cover bg-center pb-5" style={{ backgroundImage: `url(${parallaximage})` }}>
       {/* Navbar */}
       <nav className="flex justify-between items-center p-5 bg-[#38496a] shadow-md h-16 fixed top-0 w-full z-50">
-  <div className="container mx-auto flex justify-between items-center">
-    <img src={logo} alt="Roamio Logo" className="h-12 w-auto" />
-    <div className="flex space-x-6">
-      <a href="#" className="text-white hover:text-[#89A8B2] transition">
-        My Profile
-      </a>
-      <a href="#" className="text-white hover:text-[#89A8B2] transition">
-        Logout
-      </a>
-    </div>
-  </div>
-</nav>
+        <img src={logo} alt="Roamio Logo" className="h-12 w-auto" />
+        <div className="flex space-x-6">
+          <a href="#" className="text-white hover:text-[#89A8B2] transition" onClick={handleFeeds}>Home</a>
+          <a href="#" className="text-white hover:text-[#89A8B2] transition">Logout</a>
+        </div>
+      </nav>
       
-      <div className="max-w-4xl mx-auto bg-white p-8 rounded-2xl shadow-lg mt-20">
+      <div className="max-w-4xl mx-auto bg-[#ffffffee] p-8 rounded-2xl shadow-lg mt-20">
         <h1 className="text-3xl font-bold text-[#2E5A6B] mb-6">My Profile</h1>
         <div className="flex items-center space-x-6 mb-8">
           <div className="w-32 h-32 bg-[#E5E1DA] rounded-full flex items-center justify-center overflow-hidden">
