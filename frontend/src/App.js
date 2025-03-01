@@ -4,6 +4,7 @@ import React from 'react';
 import LandingPage from "./components/LandingPage";
 import Feeds from "./components/Feeds";
 import PostForm from "./components/PostForm";
+import MyProfile from "./components/MyProfile";
 // import CreatePost from "./components/CreatePost";
 
 function App() {
@@ -13,6 +14,7 @@ function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/feeds" element={<Feeds />} />
         <Route path="/post" element={<PostForm />} />
+        <Route path="/myprofile" element={<MyProfile />} />
         {/* <Route path="/create-post" element={<CreatePost />} /> */}
       </Routes>
     </Router>
