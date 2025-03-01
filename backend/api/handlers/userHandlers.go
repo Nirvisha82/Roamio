@@ -120,7 +120,7 @@ func Login(c *gin.Context) {
 
 // To follow page/ User
 func CreateFollow(c *gin.Context) {
-	database, err := databaseConnection()
+	database, err := api.DatabaseConnection()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database connection failed"})
 		return
@@ -247,7 +247,7 @@ func RetrieveFollowings(database *gorm.DB, followerID uint) ([]struct {
 
 // Retrieve followers api route
 func GetFollowers(c *gin.Context) {
-	database, err := databaseConnection()
+	database, err := api.DatabaseConnection()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database connection failed"})
 		return
@@ -291,7 +291,7 @@ func GetFollowers(c *gin.Context) {
 }
 
 func GetFollowings(c *gin.Context) {
-	database, err := databaseConnection()
+	database, err := api.DatabaseConnection()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database connection failed"})
 		return
