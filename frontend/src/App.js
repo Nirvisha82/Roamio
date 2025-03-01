@@ -4,6 +4,7 @@ import React from 'react';
 import LandingPage from "./components/LandingPage";
 import Feeds from "./components/Feeds";
 import PostForm from "./components/PostForm";
+import MyProfile from "./components/MyProfile";
 import FullPost from "./components/FullPost";
 
 function App() {
@@ -14,6 +15,7 @@ function App() {
         <Route path="/feeds" element={<Feeds />} />
         <Route path="/post" element={<PostForm />} />
         <Route path="/post/:postId" element={<FullPost />} />
+         <Route path="/myprofile" element={<MyProfile />} />
       </Routes>
     </Router>
   );
