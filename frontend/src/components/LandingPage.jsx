@@ -159,7 +159,13 @@ const LandingPage = () => {
           <p className="text-lg mt-4 text-[#000000]">
             Your one-stop solution for travel needs – discover budget itineraries, local tips, and tourist spot reviews!
           </p>
-          <button className="mt-6 px-6 py-3 bg-[#E5E1DA] text-[#2E5A6B] font-semibold rounded-lg shadow-md hover:bg-[#4A7C88] transition">
+          <button 
+          onClick={() => {
+            document.getElementById("register").scrollIntoView({
+              behavior: "smooth", // smooth scrolling
+            });
+          }}
+          className="mt-6 px-6 py-3 bg-[#E5E1DA] text-[#4A7C88] font-semibold rounded-lg shadow-md hover:bg-[#4a7c8870] transition">
             Get Started
           </button>
         </motion.div>
