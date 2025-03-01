@@ -321,3 +321,39 @@ func GetFollowings(c *gin.Context) {
 
 	c.JSON(http.StatusOK, followings)
 }
+
+// Unfollowing logic
+func Unfollow(c *gin.Context) {
+	database, err := api.DatabaseConnection()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database connection failed"})
+		return
+	}
+
+	var unfollowReq struct {
+		FollowerID uint   `json:"follower_id" binding:"required"`
+		TargetID   uint   `json:"target_id" binding:"required"`
+		Type       string `json:"type" binding:"required,oneof=user page"`
+	}
+
+	if err := c.ShouldBindJSON(&unfollowReq); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		return
+	}
+
+	// Delete the follow relationship
+	result := database.Where("follower_id = ? AND target_id = ? AND type = ?", unfollowReq.FollowerID, unfollowReq.TargetID, unfollowReq.Type).
+		Delete(&models.Follows{})
+
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to unfollow"})
+		return
+	}
+
+	if result.RowsAffected == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Follow relationship not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Successfully unfollowed"})
+}

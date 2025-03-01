@@ -40,6 +40,7 @@ func main() {
 	router.POST("/users/follow", handlers.CreateFollow)
 	router.GET("/users/followers", handlers.GetFollowers)
 	router.GET("/users/followings", handlers.GetFollowings)
+	router.POST("/users/unfollow", handlers.Unfollow)
 
 	router.Run(":8080")
 }
