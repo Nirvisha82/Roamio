@@ -3,8 +3,20 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import parallaximage from "../images/Parallax_Image.jpg";
 import logo from "../images/logo.png";
+import { useParams, useNavigate } from "react-router-dom";
 
 const PostForm = () => {
+
+  const navigate = useNavigate();
+
+  const handleFeeds = () => {
+    navigate("/feeds"); 
+  };
+  
+  const handleMyProfile = () => {
+    navigate("/myprofile"); 
+  };
+
   const [days, setDays] = useState("");
   const [nights, setNights] = useState("");
 
@@ -20,6 +32,7 @@ const PostForm = () => {
     if (value === "" || Number(value) >= 0) {
       setNights(value);
     }
+    
   };
 
   return (
@@ -34,11 +47,12 @@ const PostForm = () => {
       >
         <img src={logo} alt="Roamio Logo" className="h-12 w-auto" />
         <div className="flex space-x-6">
-          <a href="#register" className="text-white hover:text-[#89A8B2] transition">Join Us</a>
-          <a href="#features" className="text-white hover:text-[#89A8B2] transition">Our Features</a>
-          <a href="#team" className="text-white hover:text-[#89A8B2] transition">Our Team</a>
+        <a href="#" className="text-white hover:text-[#89A8B2] transition" onClick={handleFeeds}>Home</a>
+          <a href="#" className="text-white hover:text-[#89A8B2] transition" onClick={handleMyProfile}>My Profile</a>
+          <a href="#" className="text-white hover:text-[#89A8B2] transition">Logout</a>
         </div>
       </motion.nav>
+
 
       <motion.div
         initial={{ x: "100%" }}
