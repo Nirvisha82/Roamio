@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/anchor-is-valid */
 import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import logo from "../images/logo.png";
@@ -23,12 +24,17 @@ const FullPost = () => {
     { id: 2, text: "Thanks for sharing!", replies: [] },
   ]);
   const [newComment, setNewComment] = useState("");
+  const [isFollowing, setIsFollowing] = useState(false);
 
   const addComment = () => {
     if (newComment.trim() !== "") {
       setComments([...comments, { id: comments.length + 1, text: newComment, replies: [] }]);
       setNewComment("");
     }
+  };
+
+  const toggleFollow = () => {
+    setIsFollowing(!isFollowing);
   };
 
   if (!post) {
@@ -56,16 +62,27 @@ const FullPost = () => {
       </nav>
 
       <div className="flex flex-grow mt-16">
-        <div className="w-1/4 p-10 bg-[#38496a] opacity-95 text-white">
+        {/* Profile Section */}
+        <div className="w-1/4 p-10 bg-[#38496a] opacity-95 text-white flex flex-col items-center">
           <h2 className="text-xl font-semibold mb-4">Profile</h2>
           <img src={post.profilePic} alt="Profile" className="w-24 h-24 rounded-full object-cover" />
           <p className="text-lg font-semibold mt-2">{post.username}</p>
+          <button
+            onClick={toggleFollow}
+            className={`mt-3 px-6 py-2 rounded-lg font-semibold transition ${
+              isFollowing ? "bg-red-500 text-white" : "bg-[#4A7C88] text-white hover:bg-[#4a7c8876]"
+            }`}
+          >
+            {isFollowing ? "Unfollow -" : "Follow +"}
+          </button>
         </div>
 
+        {/* Post Content Section */}
         <div className="w-3/4 p-6 bg-[#F1F0E8]">
           <h1 className="text-2xl text-[#4A7C88] font-bold mb-4">{post.title}</h1>
           <p className="text-lg text-gray-600 mb-4">{post.content}</p>
 
+          {/* Comments Section */}
           <div className="mt-6">
             <h2 className="text-xl font-semibold text-[#4A7C88]">Comments</h2>
             <div className="mt-4">
@@ -76,6 +93,7 @@ const FullPost = () => {
               ))}
             </div>
 
+            {/* Add Comment Section */}
             <div className="mt-4">
               <textarea
                 className="w-full p-2 border rounded-lg"

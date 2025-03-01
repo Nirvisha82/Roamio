@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/anchor-is-valid */
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom"; 
 import Select from "react-select";
@@ -23,6 +24,9 @@ const Feeds = () => {
 
   const states = State.getStatesOfCountry("US").map((s) => ({ value: s.isoCode, label: s.name }));
   const cities = selectedState ? City.getCitiesOfState("US", selectedState.value).map((c) => ({ value: c.name, label: c.name })) : [];
+  const handleCreatePost = () => {
+    navigate("/post"); 
+  };
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 0);
@@ -53,6 +57,12 @@ const Feeds = () => {
           <h1 className="text-2xl text-[#4A7C88] font-bold mb-4">
             {selectedCity && selectedState ? `${selectedCity.label}, ${selectedState.label}` : "Select a State & City"}
           </h1>
+          <button
+              onClick={handleCreatePost} 
+              className="mt-6 px-6 py-3 bg-[#4A7C88] text-[#ffffff] font-semibold rounded-lg shadow-md hover:bg-[#38496a] transition"
+            >
+              Create Post
+            </button>
 
           {/* Post Cards Section */}
           <div className="mt-8 ml-8 flex flex-col gap-6">
