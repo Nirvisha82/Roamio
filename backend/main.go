@@ -37,12 +37,9 @@ func main() {
 	router.POST("/itineraries", handlers.CreateItinerary)
 	router.GET("/itineraries/user/:userID", handlers.GetItineraryByUserId)
 	router.GET("/itineraries/state/:stateID", handlers.GetItineraryByStateId)
-	router.GET("/users", handlers.GetAllUsers)
-	router.POST("/register", handlers.CreateUser)
-	router.POST("/login", handlers.Login)
-	router.POST("/follow", handlers.CreateFollow)
-	router.GET("/followers", handlers.GetFollowers)
-	router.GET("/followings", handlers.GetFollowings)
+	router.POST("/users/follow", handlers.CreateFollow)
+	router.GET("/users/followers", handlers.GetFollowers)
+	router.GET("/users/followings", handlers.GetFollowings)
 
 	router.Run(":8080")
 }
