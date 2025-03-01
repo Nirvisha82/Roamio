@@ -1,11 +1,11 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Select from "react-select";
-import "slick-carousel/slick/slick.css";
-import "slick-carousel/slick/slick-theme.css";
 import { State, City } from "country-state-city";
 import logo from "../images/logo.png";
 
 const Feeds = () => {
+  const navigate = useNavigate();
   const [selectedState, setSelectedState] = useState(null);
   const [selectedCity, setSelectedCity] = useState(null);
 
@@ -30,11 +30,15 @@ const Feeds = () => {
       <nav className="flex justify-between items-center p-5 bg-[#38496a] shadow-md h-16 fixed top-0 w-full z-50">
         <img src={logo} alt="Roamio Logo" className="h-12 w-auto" />
         <div className="flex space-x-6">
-          <a href="#" className="text-white hover:text-[#89A8B2] transition">My Profile</a>
-          <a href="#" className="text-white hover:text-[#89A8B2] transition">Logout</a>
+          <a href="#" className="text-white hover:text-[#89A8B2] transition">
+            My Profile
+          </a>
+          <a href="#" className="text-white hover:text-[#89A8B2] transition">
+            Logout
+          </a>
         </div>
       </nav>
-      
+
       {/* Content Wrapper with No Extra Padding for Navbar */}
       <div className="flex flex-grow mt-16">
         {/* Sidebar */}
@@ -65,7 +69,12 @@ const Feeds = () => {
               ? `${selectedCity.label}, ${selectedState.label}`
               : "Select a State & City"}
           </h1>
-          <button className="mt-6 px-6 py-3 bg-[#E5E1DA] text-[#2E5A6B] font-semibold rounded-lg shadow-md hover:bg-[#4A7C88] transition">
+
+          {/* Create Post Button with Navigation */}
+          <button
+            onClick={() => navigate("/post")}
+            className="mt-6 px-6 py-3 bg-[#E5E1DA] text-[#2E5A6B] font-semibold rounded-lg shadow-md hover:bg-[#4A7C88] transition"
+          >
             Create Post
           </button>
         </div>
