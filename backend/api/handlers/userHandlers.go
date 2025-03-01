@@ -1,9 +1,10 @@
-package api
+package handlers
 
 import (
 	"fmt"
 	"log"
 	"net/http"
+	"roamio/backend/api"
 	"roamio/backend/models"
 
 	"github.com/gin-gonic/gin"
@@ -12,7 +13,7 @@ import (
 )
 
 func GetAllUsers(c *gin.Context) {
-	database, err := databaseConnection()
+	database, err := api.DatabaseConnection()
 	if err != nil {
 		log.Fatal("failed to connect to Database")
 	}
@@ -38,7 +39,7 @@ func checkPasswordHash(password, hash string) bool {
 
 // register a user/account
 func CreateUser(c *gin.Context) {
-	database, err := databaseConnection()
+	database, err := api.DatabaseConnection()
 	if err != nil {
 		log.Fatal("failed to connect to Database")
 	}
@@ -77,7 +78,7 @@ func CreateUser(c *gin.Context) {
 
 // User Login
 func Login(c *gin.Context) {
-	database, err := databaseConnection()
+	database, err := api.DatabaseConnection()
 	if err != nil {
 		log.Fatal("failed to connect to Database")
 	}
