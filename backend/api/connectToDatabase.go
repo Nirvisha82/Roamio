@@ -10,7 +10,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func databaseConnection() (*gorm.DB, error) {
+func DatabaseConnection() (*gorm.DB, error) {
 	var pathToDatabase string
 	err := godotenv.Load()
 	if err != nil {
@@ -28,7 +28,7 @@ func databaseConnection() (*gorm.DB, error) {
 		return nil, err
 	}
 	// Automatically migrate the schema for the User model
-	err = database.AutoMigrate(&models.User{})
+	err = database.AutoMigrate(&models.User{}, &models.Itinerary{})
 	if err != nil {
 		log.Fatalf("Failed to migrate database: %v", err)
 	}

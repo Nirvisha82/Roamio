@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 	"os"
-	"roamio/backend/api"
+	"roamio/backend/api/handlers"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -30,9 +30,13 @@ func main() {
 		AllowHeaders:     []string{"Content-Type", "Authorization"},
 		AllowCredentials: true,
 	}))
-	router.GET("/users", api.GetAllUsers)
-	router.POST("/register", api.CreateUser)
-	router.POST("/login", api.Login)
+	router.GET("/users", handlers.GetAllUsers)
+	router.POST("/users/register", handlers.CreateUser)
+	router.POST("/users/login", handlers.Login)
+	router.GET("/itineraries", handlers.GetAllItinerary)
+	router.POST("/itineraries", handlers.CreateItinerary)
+	router.GET("/itineraries/user/:userID", handlers.GetItineraryByUserId)
+	router.GET("/itineraries/state/:stateID", handlers.GetItineraryByStateId)
 
 	router.Run(":8080")
 }
