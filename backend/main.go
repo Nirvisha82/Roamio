@@ -33,6 +33,9 @@ func main() {
 	router.GET("/users", api.GetAllUsers)
 	router.POST("/register", api.CreateUser)
 	router.POST("/login", api.Login)
+	router.POST("/follow", api.CreateFollow)
+	router.GET("/followers", api.GetFollowers)
+	router.GET("/followings", api.GetFollowings)
 
 	router.Run(":8080")
 }
