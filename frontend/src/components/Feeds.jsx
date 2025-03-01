@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom"; 
 import Select from "react-select";
-import "slick-carousel/slick/slick.css";
-import "slick-carousel/slick/slick-theme.css";
 import { State, City } from "country-state-city";
 import logo from "../images/logo.png";
 import profilePic1 from "../images/team1.jpg";
@@ -11,6 +9,7 @@ import profilePic3 from "../images/team3.jpg";
 import profilePic4 from "../images/team4.jpg";
 
 const Feeds = () => {
+  const navigate = useNavigate();
   const [selectedState, setSelectedState] = useState(null);
   const [selectedCity, setSelectedCity] = useState(null);
   const [isScrolled, setIsScrolled] = useState(false); // State to track scroll position
