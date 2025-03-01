@@ -16,6 +16,8 @@ import team3 from "../images/team3.jpg";
 import team4 from "../images/team4.jpg";
 import { State, City } from "country-state-city";
 import Select from "react-select";
+import { useNavigate } from 'react-router-dom';
+
 
 const features = [
   { title: "Personalized Itineraries", description: "Create detailed travel plans tailored to your style.", image: feature1 },
@@ -52,35 +54,39 @@ const LandingPage = () => {
   //login
   const [loginData, setLoginData] = useState({ username_or_email: "", password: "" });
   const [error, setError] = useState("");
-  
+  const navigate = useNavigate();
+
   const handleLogin = async (e) => {
-    e.preventDefault();
-    setError("");
+      e.preventDefault();
+      setError("");
   
-    try {
-      const response = await fetch("http://localhost:8080/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          username_or_email: loginData.username_or_email, 
-          password: loginData.password
-        }),
-      });
+      try {
+          const response = await fetch("http://localhost:8080/login", {
+              method: "POST",
+              headers: {
+                  "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                  username_or_email: loginData.username_or_email,
+                  password: loginData.password
+              }),
+          });
   
-      const data = await response.json();
+          const data = await response.json();
   
-      if (response.ok) {
-        alert("Login successful!");
-        console.log("User data:", data);
-      } else {
-        setError(data.message || "Login failed.");
+          if (response.ok) {
+              // alert("Login successful!");
+              // console.log("User data:", data);
+              
+              // Redirect to a different route
+              navigate("/feeds"); // Replace "/dashboard" with your desired route
+          } else {
+              setError(data.message || "Login failed.");
+          }
+      } catch (error) {
+          console.error("Network error:", error);
+          setError("Network error. Please try again.");
       }
-    } catch (error) {
-      console.error("Network error:", error);
-      setError("Network error. Please try again.");
-    }
   };
 
   //register
@@ -153,7 +159,13 @@ const LandingPage = () => {
           <p className="text-lg mt-4 text-[#000000]">
             Your one-stop solution for travel needs – discover budget itineraries, local tips, and tourist spot reviews!
           </p>
-          <button className="mt-6 px-6 py-3 bg-[#E5E1DA] text-[#2E5A6B] font-semibold rounded-lg shadow-md hover:bg-[#4A7C88] transition">
+          <button 
+          onClick={() => {
+            document.getElementById("register").scrollIntoView({
+              behavior: "smooth", // smooth scrolling
+            });
+          }}
+          className="mt-6 px-6 py-3 bg-[#E5E1DA] text-[#4A7C88] font-semibold rounded-lg shadow-md hover:bg-[#4a7c8870] transition">
             Get Started
           </button>
         </motion.div>
