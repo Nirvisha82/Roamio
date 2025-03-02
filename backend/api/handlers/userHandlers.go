@@ -25,6 +25,21 @@ func GetAllUsers(c *gin.Context) {
 	c.JSON(http.StatusOK, users)
 }
 
+func GetUserProfile(database *gorm.DB, usernameOrEmail string) (*models.User, error) {
+	var user models.User
+
+	// Query the database for the user by username or email
+	err := database.Select("id, fullname, location, dob, username, email").
+		Where("username = ? OR email = ?", usernameOrEmail, usernameOrEmail).
+		First(&user).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+}
+
 // HashPassword hashes a plain-text password using bcrypt
 func hashPassword(password string) (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
@@ -112,9 +127,17 @@ func Login(c *gin.Context) {
 		return
 	}
 
+	// Retrieve user profile (excluding password)
+	userProfile, err := GetUserProfile(database, loginRequest.UsernameOrEmail)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve user profile"})
+		return
+	}
+
 	// Successful login response
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Login successful",
+		"user":    userProfile,
 	})
 }
 
