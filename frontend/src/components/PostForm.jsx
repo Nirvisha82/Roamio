@@ -1,9 +1,10 @@
+/* eslint-disable no-unused-vars */
 /* eslint-disable jsx-a11y/anchor-is-valid */
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import parallaximage from "../images/Parallax_Image.jpg";
 import logo from "../images/logo.png";
-import { useParams, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const PostForm = () => {
 
@@ -81,7 +82,7 @@ const PostForm = () => {
             <textarea placeholder="Stay Suggestions (e.g., hotels, hostels, Airbnbs)" className="w-full p-3 border rounded-lg shadow-sm" />
             <input type="file" multiple className="w-full p-3 border rounded-lg shadow-sm bg-white" />
 
-            <button type="submit" className="w-full py-3 bg-[#38496a] text-white font-semibold rounded-lg shadow-md hover:bg-[#4A7C88] transition">
+            <button type="submit" className="w-full py-3 bg-[#38496a] text-white font-semibold rounded-lg shadow-md hover:bg-[#4A7C88] transition" onClick={handleFeeds}>
               Submit
             </button>
           </form>

@@ -15,9 +15,8 @@ import team2 from "../images/team2.jpg";
 import team3 from "../images/team3.jpg";
 import team4 from "../images/team4.jpg";
 import { State, City } from "country-state-city";
-import Select from "react-select";
-import { useNavigate } from 'react-router-dom';
-
+import Select from "react-select";
+import { useNavigate } from "react-router-dom";
 
 const features = [
   { title: "Personalized Itineraries", description: "Create detailed travel plans tailored to your style.", image: feature1 },
@@ -34,9 +33,12 @@ const teamMembers = [
 ];
 
 const LandingPage = () => {
+  const navigate = useNavigate();
   const [selectedFeature, setSelectedFeature] = useState(features[0]);
   const [isSignUp, setIsSignUp] = useState(true);
-  //const [selectedLocation, setSelectedLocation] = useState(null);
+  const [selectedLocation, setSelectedLocation] = useState(null);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [loginError, setLoginError] = useState('');
 
   // Fetch all U.S. states
   const states = State.getStatesOfCountry("US");
@@ -51,87 +53,32 @@ const LandingPage = () => {
     })),
   ]);
 
-  //login
-  const [loginData, setLoginData] = useState({ username_or_email: "", password: "" });
-  const [error, setError] = useState("");
-  const navigate = useNavigate();
-
-  const handleLogin = async (e) => {
-      e.preventDefault();
-      setError("");
-  
-      try {
-          const response = await fetch("http://localhost:8080/login", {
-              method: "POST",
-              headers: {
-                  "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                  username_or_email: loginData.username_or_email,
-                  password: loginData.password
-              }),
-          });
-  
-          const data = await response.json();
-  
-          if (response.ok) {
-              // alert("Login successful!");
-              // console.log("User data:", data);
-              
-              // Redirect to a different route
-              navigate("/feeds"); // Replace "/dashboard" with your desired route
-          } else {
-              setError(data.message || "Login failed.");
-          }
-      } catch (error) {
-          console.error("Network error:", error);
-          setError("Network error. Please try again.");
-      }
+  const handleSignUpSubmit = () => {
+    if (
+      !document.querySelector('input[type="text"][placeholder="Full Name"]').value ||
+      !document.querySelector('input[type="text"][placeholder="User Name"]').value ||
+      !document.querySelector('input[type="email"][placeholder="Email"]').value ||
+      !document.querySelector('input[type="password"][placeholder="Password"]').value ||
+      !document.querySelector('input[type="date"][placeholder="Birthdate"]').value ||
+      !selectedLocation
+    ) {
+      setErrorMessage("All fields are required.");
+    } else {
+      setErrorMessage(''); // Clear the error message if all fields are filled
+      // Proceed with form submission logic (e.g., API call)
+    }
   };
 
-  //register
-  const [signUpData, setSignUpData] = useState({
-    Fullname: "",
-    Location: "",
-    DOB: "",
-    Username: "",
-    Email: "",
-    Password: "",
-  });
-  
-  const handleSignUp = async (e) => {
-    e.preventDefault();
-    setError("");
-
-    if (!signUpData.Fullname || !signUpData.Location || !signUpData.DOB || !signUpData.Username || !signUpData.Email || !signUpData.Password) {
-      setError("All fields are required.");
-      return; // Stop execution if any field is missing
+  const handleLoginSubmit = () => {
+    if (
+      !document.querySelector('input[type="email"][placeholder="Email"]').value ||
+      !document.querySelector('input[type="password"][placeholder="Password"]').value
+    ) {
+      setLoginError("All Fields are required.");
+    } else {
+      navigate('/feeds');
     }
-  
-    try {
-      const response = await fetch("http://localhost:8080/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(signUpData),
-      });
-  
-      const data = await response.json();
-  
-      if (response.ok) {
-        alert("Registration successful!");
-        console.log("User registered:", data);
-        // Optionally, switch to login mode
-        setIsSignUp(false);
-      } else {
-        setError(data.message || "Registration failed.");
-      }
-    } catch (error) {
-      console.error("Network error:", error);
-      setError("Network error. Please try again.");
-    }
-  };  
+  };
 
   return (
     <div className="bg-[#F1F0E8] min-h-screen text-[#4A7C88]">
@@ -145,12 +92,12 @@ const LandingPage = () => {
         </div>
       </nav>
 
-{/* Hero Section */}
-<div className="flex flex-col md:flex-row justify-between items-center min-h-screen pt-30 px-6 md:px-20">
-        <motion.div 
+      {/* Hero Section */}
+      <div className="flex flex-col md:flex-row justify-between items-center min-h-screen pt-30 px-6 md:px-20">
+        <motion.div
           className="max-w-xl"
-          initial={{ x: -100, opacity: 0 }} 
-          animate={{ x: 0, opacity: 1 }} 
+          initial={{ x: -100, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
         >
           <h2 className="text-4xl font-bold text-[#4A7C88]">
@@ -159,21 +106,15 @@ const LandingPage = () => {
           <p className="text-lg mt-4 text-[#000000]">
             Your one-stop solution for travel needs – discover budget itineraries, local tips, and tourist spot reviews!
           </p>
-          <button 
-          onClick={() => {
-            document.getElementById("register").scrollIntoView({
-              behavior: "smooth", // smooth scrolling
-            });
-          }}
-          className="mt-6 px-6 py-3 bg-[#E5E1DA] text-[#4A7C88] font-semibold rounded-lg shadow-md hover:bg-[#4a7c8870] transition">
+          <button className="mt-6 px-6 py-3 bg-[#E5E1DA] text-[#2E5A6B] font-semibold rounded-lg shadow-md hover:bg-[#4A7C88] transition">
             Get Started
           </button>
         </motion.div>
 
-        <motion.div 
+        <motion.div
           className="w-full md:w-1/2 mt-8 md:mt-0"
-          initial={{ x: 100, opacity: 0 }} 
-          animate={{ x: 0, opacity: 1 }} 
+          initial={{ x: 100, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
         >
           <img src={landingimage} alt="Travel" className="w-full h-full min-h-screen object-cover shadow-md" />
@@ -185,11 +126,11 @@ const LandingPage = () => {
         <h2 className="text-4xl font-bold text-white mb-8"> Our Features </h2>
         <div className="flex w-full max-w-7xl mx-auto">
           <div className="w-1/2 flex justify-center items-center">
-            <motion.img 
-              key={selectedFeature.image} 
-              src={selectedFeature.image} 
-              alt={selectedFeature.title} 
-              className="w-3/4 h-auto rounded-lg shadow-lg" 
+            <motion.img
+              key={selectedFeature.image}
+              src={selectedFeature.image}
+              alt={selectedFeature.title}
+              className="w-3/4 h-auto rounded-lg shadow-lg"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5 }}
@@ -197,11 +138,11 @@ const LandingPage = () => {
           </div>
           <div className="w-1/2 flex flex-col space-y-6 overflow-hidden">
             {features.map((feature, index) => (
-              <motion.div 
-                key={index} 
+              <motion.div
+                key={index}
                 className={`p-4 h-25 bg-opacity-90 bg-white text-black rounded-lg shadow-lg cursor-pointer ${selectedFeature.title === feature.title ? '' : ''}`}
                 onClick={() => setSelectedFeature(feature)}
-                whileHover={{backgroundColor: "#d5d2cb" /*Scale: 1.02, borderRadius: "20px"*/}}
+                whileHover={{ backgroundColor: "#d5d2cb" }}
               >
                 <h3 className="text-2xl font-semibold">{feature.title}</h3>
                 <p className="text-lg mt-2">{feature.description}</p>
@@ -225,64 +166,52 @@ const LandingPage = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1 }}
           >
-          <div className="flex justify-center mb-6">
-            <button onClick={() => setIsSignUp(true)} className={`px-4 py-2 ${isSignUp ? 'bg-[#38496a] text-white' : 'bg-gray-200'} rounded-l-md`}>Sign Up</button>
-            <button onClick={() => setIsSignUp(false)} className={`px-4 py-2 ${!isSignUp ? 'bg-[#38496a] text-white' : 'bg-gray-200'} rounded-r-md`}>Login</button>
-          </div>
-          {isSignUp ? (
-            <div>
-              <h3 className="text-xl font-semibold text-center mb-4">Sign Up</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <input type="text" placeholder="Full Name" className="w-full p-2 mb-3 border rounded" 
-                  value={signUpData.Fullname} 
-                  onChange={(e) => setSignUpData({ ...signUpData, Fullname: e.target.value })}/>
-                <input type="text" placeholder="User Name" className="w-full p-2 mb-3 border rounded" 
-                  value={signUpData.Username}
-                  onChange={(e) => setSignUpData({ ...signUpData, Username: e.target.value })}/>
-                <input type="email" placeholder="Email" className="w-full p-2 mb-3 border rounded" 
-                  value={signUpData.Email}
-                  onChange={(e) => setSignUpData({ ...signUpData, Email: e.target.value })}/>             
-                <input type="password" placeholder="Password" className="w-full p-2 mb-3 border rounded" 
-                  value={signUpData.Password}
-                  onChange={(e) => setSignUpData({ ...signUpData, Password: e.target.value })}/>
-                <input type="date" placeholder="Birthdate" className="w-full p-2 mb-3 border rounded" 
-                  value={signUpData.DOB}
-                  onChange={(e) => setSignUpData({ ...signUpData, DOB: e.target.value })}/>
-                <Select
-                  options={locationOptions}
-                  
-                  placeholder="Select or Search City"
-                  className="w-full p-2 mb-3 border rounded"
-                  isSearchable
-                  value={locationOptions.find(option => option.value === signUpData.Location)}
-                  onChange={(selected) => setSignUpData({ ...signUpData, Location: selected.value })}
-                />
+            <div className="flex justify-center mb-6">
+              <button onClick={() => setIsSignUp(true)} className={`px-4 py-2 ${isSignUp ? 'bg-[#38496a] text-white' : 'bg-gray-200'} rounded-l-md`}>Sign Up</button>
+              <button onClick={() => setIsSignUp(false)} className={`px-4 py-2 ${!isSignUp ? 'bg-[#38496a] text-white' : 'bg-gray-200'} rounded-r-md`}>Login</button>
+            </div>
+            {isSignUp ? (
+              <div>
+                <h3 className="text-xl font-semibold text-center mb-4">Sign Up</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <input type="text" placeholder="Full Name" className="w-full p-2 mb-3 border rounded" />
+                  <input type="text" placeholder="User Name" className="w-full p-2 mb-3 border rounded" />
+                  <input type="email" placeholder="Email" className="w-full p-2 mb-3 border rounded" />             
+                  <input type="password" placeholder="Password" className="w-full p-2 mb-3 border rounded" />
+                  <input type="date" placeholder="Birthdate" className="w-full p-2 mb-3 border rounded" />
+                  <Select
+                    options={locationOptions}
+                    value={selectedLocation}
+                    onChange={setSelectedLocation}
+                    placeholder="Select State or City"
+                    className="w-full p-2 mb-3 border rounded"
+                    isSearchable
+                  />
+                </div>
+                {errorMessage && <p className="text-red-600 text-center">{errorMessage}</p>}
+                <button
+                  className="w-full bg-[#38496a] text-white py-2 rounded"
+                  onClick={handleSignUpSubmit}
+                >
+                  Register
+                </button>
               </div>
-              {error && <p className="text-red-500 text-center">{error}</p>}
-              <button className="w-full bg-[#38496a] text-white py-2 rounded"  onClick={handleSignUp} 
-                //disabled={Object.values(signUpData).some(value => !value)}
-                >Register</button>
-            </div>
-          ) : (
-            <div>
-              <h3 className="text-xl font-semibold text-center mb-4">Login</h3>
-              <input type="email" placeholder="Email" className="w-full p-2 mb-3 border rounded" 
-                value={loginData.username_or_email} 
-                onChange={(e) => setLoginData({ ...loginData, username_or_email: e.target.value })}/>
-              <input type="password" placeholder="Password" className="w-full p-2 mb-3 border rounded" 
-                value={loginData.password}
-                onChange={(e) => setLoginData({ ...loginData, password: e.target.value })} />
-              {error && <p className="text-red-500">{error}</p>}
-              <button onClick={handleLogin} className="w-full bg-[#38496a] text-white py-2 rounded">Login</button>
-            </div>
-          )}
+            ) : (
+              <div>
+                <h3 className="text-xl font-semibold text-center mb-4">Login</h3>
+                <input type="email" placeholder="Email" className="w-full p-2 mb-3 border rounded" />
+                <input type="password" placeholder="Password" className="w-full p-2 mb-3 border rounded" />
+                {loginError && <p className="text-red-600 text-center">{loginError}</p>}
+                <button id="login-button" className="w-full bg-[#38496a] text-white py-2 rounded" onClick={handleLoginSubmit}>Login</button>
+              </div>
+            )}
           </motion.div>
         </div>
       </section>
-      
+
       {/* Team Section */}
       <section id="team" className="h-full bg-[#38496a] text-white flex flex-col items-center justify-center p-10">
-      <h2 className="text-4xl font-bold mb-20">Meet Our Team</h2>
+        <h2 className="text-4xl font-bold mb-20">Meet Our Team</h2>
         <div className="flex space-x-20">
           {teamMembers.map((member, index) => (
             <div key={index} className="flex flex-col items-center">
@@ -298,7 +227,6 @@ const LandingPage = () => {
       <footer id="footer" className="bg-[#F1F0E8] text-black text-center py-2">
         <p className="text-sm">&copy; 2025 Roamio. All rights reserved.</p>
       </footer>
-
     </div>
   );
 };
