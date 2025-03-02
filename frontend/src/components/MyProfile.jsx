@@ -1,5 +1,5 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import logo from "../images/logo.png";
 import parallaximage from "../images/Parallax_Image.jpg";
@@ -7,12 +7,31 @@ import parallaximage from "../images/Parallax_Image.jpg";
 const Profile = () => {
   const navigate = useNavigate();
   const [profileImage, setProfileImage] = useState(null);
+  const [user, setUser] = useState(null); // State to store user details
+  const [loading, setLoading] = useState(true); // Loading state to handle the session check
+
+  useEffect(() => {
+    // Check if the session exists when the component is mounted
+    const sessionUser = localStorage.getItem("user");
+    if (!sessionUser) {
+      // Redirect to login page if session is not found
+      navigate("/", { replace: true });
+    } else {
+      setUser(JSON.parse(sessionUser));
+    }
+    setLoading(false); // Set loading to false once session check is done
+  }, [navigate]);
+
+  // Don't render the profile page while checking for session
+  if (loading) {
+    return null; // Return null to prevent rendering before session check is complete
+  }
 
   const handleFeeds = () => {
-    navigate("/feeds"); 
+    navigate("/feeds");
   };
 
-  const userDetails = {
+  const userDetails = user || { // Use user details from session if available
     name: "John Doe",
     email: "johndoe@example.com",
     location: "New York, USA",

@@ -14,6 +14,22 @@ const Feeds = () => {
   const [selectedState, setSelectedState] = useState(null);
   const [selectedCity, setSelectedCity] = useState(null);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [user, setUser] = useState(null); // Store user session info
+
+  // Check if user is logged in
+  useEffect(() => {
+    const sessionUser = localStorage.getItem("user");
+    if (!sessionUser) {
+      // Redirect to login if no session found
+      navigate("/");
+    } else {
+      setUser(JSON.parse(sessionUser));
+    }
+
+    const handleScroll = () => setIsScrolled(window.scrollY > 0);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [navigate]);
 
   const posts = [
     { id: 1, title: "Post 1", content: "This is the content of Post 1", profilePic: profilePic1, username: "SoniNirvisha" },
@@ -29,7 +45,7 @@ const Feeds = () => {
   };
 
   const handleMyProfile = () => {
-    navigate("/myprofile");
+    navigate(`/profile/${user?.username}`);
   };
 
   useEffect(() => {
