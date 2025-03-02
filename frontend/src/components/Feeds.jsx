@@ -8,6 +8,7 @@ import profilePic1 from "../images/team1.jpg";
 import profilePic2 from "../images/team2.jpg";
 import profilePic3 from "../images/team3.jpg";
 import profilePic4 from "../images/team4.jpg";
+import defaultpic from "../images/default.jpg";
 
 const Feeds = () => {
   const navigate = useNavigate();
@@ -16,20 +17,22 @@ const Feeds = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [user, setUser] = useState(null); // Store user session info
 
-  // Check if user is logged in
+  // // Check if user is logged in
   useEffect(() => {
-    const sessionUser = localStorage.getItem("user");
-    if (!sessionUser) {
-      // Redirect to login if no session found
-      navigate("/");
+    const storedUser = localStorage.getItem("currentUser");
+    console.log('Session check:', storedUser);
+
+    if (storedUser) {
+      const parsedUser = JSON.parse(storedUser);
+      setUser(parsedUser);
     } else {
-      setUser(JSON.parse(sessionUser));
+      navigate("/");
     }
 
     const handleScroll = () => setIsScrolled(window.scrollY > 0);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [navigate]);
+  }, [navigate]); // Added navigate to dependencies
 
   const posts = [
     { id: 1, title: "Post 1", content: "This is the content of Post 1", profilePic: profilePic1, username: "SoniNirvisha" },
@@ -44,23 +47,69 @@ const Feeds = () => {
     navigate("/post");
   };
 
+
+  // Updated handleMyProfile function
+  //   const handleMyProfile = () => {
+  //   navigate(`/myprofile/${user?.Username}`); // Changed from sessionUser to user
+  // };
+
   const handleMyProfile = () => {
-    navigate(`/profile/${user?.username}`);
+    if (user?.Username) {
+      navigate(`/myprofile/${user.Username}`);
+    }
   };
 
+
+  // Replace the existing posts array with:
+  const [itineraries, setItineraries] = useState([]);
+  // Add this useEffect above your existing useEffect
   useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 0);
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    const fetchItineraries = async () => {
+      try {
+        const response = await fetch("http://localhost:8080/itineraries");
+        if (!response.ok) throw new Error('Failed to fetch');
+        const data = await response.json();
+        setItineraries(data);
+      } catch (error) {
+        console.error("Error fetching itineraries:", error);
+      }
+    };
+    // Modify fetch URL to:
+    // `http://localhost:8080/itineraries/user/${user?.ID}`
+    fetchItineraries();
   }, []);
+  const handleLogout = () => {
+    localStorage.removeItem("currentUser");
+    navigate("/");
+  };
+
+
 
   return (
     <div className="relative flex flex-col min-h-screen">
+      {/* <nav className="flex justify-between items-center p-5 bg-[#38496a] shadow-md h-16 fixed top-0 w-full z-50">
+        <img src={logo} alt="Roamio Logo" className="h-12 w-auto" />
+        <div className="flex space-x-6">
+          <a href="#" className="text-white hover:text-[#89A8B2] transition" onClick={handleMyProfile}>{user?.Fullname}</a>
+          <a href="#" className="text-white hover:text-[#89A8B2] transition" onClick={handleLogout}>Logout</a>
+        </div>
+      </nav> */}
+
       <nav className="flex justify-between items-center p-5 bg-[#38496a] shadow-md h-16 fixed top-0 w-full z-50">
         <img src={logo} alt="Roamio Logo" className="h-12 w-auto" />
         <div className="flex space-x-6">
-          <a href="#" className="text-white hover:text-[#89A8B2] transition" onClick={handleMyProfile}>My Profile</a>
-          <a href="#" className="text-white hover:text-[#89A8B2] transition">Logout</a>
+          <button
+            className="text-white hover:text-[#89A8B2] transition"
+            onClick={handleMyProfile}
+          >
+            My Profile
+          </button>
+          <button
+            className="text-white hover:text-[#89A8B2] transition"
+            onClick={handleLogout}
+          >
+            Logout
+          </button>
         </div>
       </nav>
 
@@ -90,20 +139,20 @@ const Feeds = () => {
 
           {/* Post Cards Section */}
           <div className="mt-8 ml-8 flex flex-col gap-6">
-            {posts.map((post) => (
+            {itineraries.map((itinerary) => (
               <div
-                key={post.id}
-                onClick={() => navigate(`/post/${post.id}`)} // Navigate to FullPost on click
+                key={itinerary.ID}
+                onClick={() => navigate(`/post/${itinerary.ID}`)} // Navigate to FullPost on click
                 className="cursor-pointer w-full max-w-3xl p-6 bg-white rounded-lg shadow-lg hover:shadow-xl transition-transform transform hover:scale-105 relative"
               >
                 <div className="flex justify-between items-center">
-                  <h3 className="text-lg font-semibold text-black">{post.title}</h3>
+                  <h3 className="text-lg font-semibold text-black">{itinerary.Title}</h3>
                   <div className="flex items-center space-x-2">
-                    <span className="text-sm font-sm text-gray-400">{post.username}</span>
-                    <img src={post.profilePic} alt="Profile" className="w-7 h-7 rounded-full object-cover" />
+                    <span className="text-sm font-sm text-gray-400">{itinerary.username}</span>
+                    <img src={defaultpic} alt="Profile" className="w-7 h-7 rounded-full object-cover" />
                   </div>
                 </div>
-                <p className="mt-2 text-sm text-gray-600">{post.content}</p>
+                <p className="mt-2 text-sm text-gray-600">{itinerary.Description}</p>
               </div>
             ))}
           </div>

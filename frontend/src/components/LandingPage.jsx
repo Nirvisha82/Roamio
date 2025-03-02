@@ -61,7 +61,7 @@ const LandingPage = () => {
       setError("");
   
       try {
-          const response = await fetch("http://localhost:8080/login", {
+          const response = await fetch("http://localhost:8080/users/login", {
               method: "POST",
               headers: {
                   "Content-Type": "application/json",
@@ -79,6 +79,10 @@ const LandingPage = () => {
               // console.log("User data:", data);
               
               // Redirect to a different route
+              const userData = data.user;
+              delete userData.Password; // Remove sensitive data
+              localStorage.setItem('currentUser', JSON.stringify(userData));
+              console.log('-------------------------  Stored user:', JSON.parse(localStorage.getItem('currentUser')));
               navigate("/feeds"); // Replace "/dashboard" with your desired route
           } else {
               setError(data.message || "Login failed.");

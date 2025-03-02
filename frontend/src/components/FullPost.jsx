@@ -1,23 +1,27 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
-import React, { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate} from "react-router-dom";
 import logo from "../images/logo.png";
 import profilePic1 from "../images/team1.jpg";
 import profilePic2 from "../images/team2.jpg";
 import profilePic3 from "../images/team3.jpg";
 import profilePic4 from "../images/team4.jpg";
+import defaultpic from "../images/default.jpg";
 
-const posts = [
-  { id: 1, title: "Post 1", content: "This is the content of Post 1", profilePic: profilePic1, username: "SoniNirvisha" },
-  { id: 2, title: "Post 2", content: "This is the content of Post 2", profilePic: profilePic2, username: "RiddhiMehta" },
-  { id: 3, title: "Post 3", content: "This is the content of Post 3", profilePic: profilePic3, username: "Harsh" },
-  { id: 4, title: "Post 4", content: "This is the content of Post 4", profilePic: profilePic4, username: "NeelM" },
-];
+// const posts = [
+//   { id: 1, title: "Post 1", content: "This is the content of Post 1", profilePic: profilePic1, username: "SoniNirvisha" },
+//   { id: 2, title: "Post 2", content: "This is the content of Post 2", profilePic: profilePic2, username: "RiddhiMehta" },
+//   { id: 3, title: "Post 3", content: "This is the content of Post 3", profilePic: profilePic3, username: "Harsh" },
+//   { id: 4, title: "Post 4", content: "This is the content of Post 4", profilePic: profilePic4, username: "NeelM" },
+// ];
 
 const FullPost = () => {
   const { postId } = useParams();
   const navigate = useNavigate();
-  const post = posts.find((p) => p.id === parseInt(postId));
+  // const post = posts.find((p) => p.id === parseInt(postId));
+  const [error, setError] = useState(null);
+  const [user, setUser] = useState(null);
+  
 
   const handleFeeds = () => {
     navigate("/feeds"); 
@@ -32,31 +36,154 @@ const FullPost = () => {
     { id: 2, text: "Thanks for sharing!", replies: [] },
   ]);
   const [newComment, setNewComment] = useState("");
-  const [isFollowing, setIsFollowing] = useState(false);
+  
 
   const addComment = () => {
-    if (newComment.trim() !== "") {
-      setComments([...comments, { id: comments.length + 1, text: newComment, replies: [] }]);
+    if (newComment.trim()) {
+      setComments([...comments, { 
+        id: comments.length + 1, 
+        text: newComment, 
+        replies: [],
+        username: JSON.parse(localStorage.getItem("currentUser")).Username
+      }]);
       setNewComment("");
     }
   };
-
+  // following related.
+  const [isFollowing, setIsFollowing] = useState(false);
   const toggleFollow = () => {
     setIsFollowing(!isFollowing);
   };
+  
+
+
+
+  //Post related
+  const [post, setPost] = useState(null);
+
+  useEffect(() => {
+    const fetchPost = async () => {
+      try {
+        // Check user session
+        const sessionUser = localStorage.getItem("currentUser");
+        if (!sessionUser) {
+          navigate("/");
+          return;
+        }
+        const parsedUser = JSON.parse(sessionUser);
+        setUser(parsedUser);
+
+        // Fetch post data
+        const response = await fetch(
+          `http://localhost:8080/itineraries/post/${postId}`
+        );
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        setPost(data);
+      } catch (error) {
+        console.error("Error fetching post:", error);
+        setError(error.message);
+      }
+    };
+
+    fetchPost();
+  }, [postId, navigate]);
+
+  const [isOwnPost, setIsOwnPost] = useState(false);
+  // Add this useEffect after fetching the post
+useEffect(() => {
+  if (post && user) {
+    const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+    const isOwner = currentUser.ID === post.UserID;
+    setIsOwnPost(isOwner);
+    
+    if (!isOwner) {
+      checkFollowStatus();
+    }
+  }
+}, [post, user]);
+
+const checkFollowStatus = async () => {
+  try {
+    const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+    const response = await fetch("http://localhost:8080/users/follow/check", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        follower_id: currentUser.ID,
+        target_id: post.UserID,
+        type: "user"
+      })
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      setIsFollowing(data.isFollowing);
+    }
+  } catch (error) {
+    console.error("Error checking follow status:", error);
+  }
+};
+
+const handleFollow = async () => {
+  try {
+    const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+    const response = await fetch("http://localhost:8080/users/follow", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        follower_id: currentUser.ID,
+        target_id: post.UserID,
+        type: "user"
+      })
+    });
+
+    if (response.ok) {
+      setIsFollowing(true);
+    }
+  } catch (error) {
+    console.error("Error following user:", error);
+  }
+};
+
+const handleUnfollow = async () => {
+  try {
+    const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+    const response = await fetch("http://localhost:8080/users/unfollow", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        follower_id: currentUser.ID,
+        target_id: post.UserID,
+        type: "user"
+      })
+    });
+
+    if (response.ok) {
+      setIsFollowing(false);
+    }
+  } catch (error) {
+    console.error("Error unfollowing user:", error);
+  }
+};
+const handleLogout = () => {
+  localStorage.removeItem("currentUser");
+  navigate("/");
+};
 
   if (!post) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen text-center">
-        <h1 className="text-2xl font-bold text-red-600">Post not found!</h1>
-        <button
-          onClick={() => navigate("/feeds")}
-          className="mt-4 px-6 py-2 bg-[#4A7C88] text-white font-semibold rounded-lg shadow-md hover:bg-[#38496a] transition"
-        >
-          Go Back to Feeds
-        </button>
-      </div>
-    );
+      <div className="text-center py-8">Loading post...</div>)
   }
 
   return (
@@ -64,9 +191,9 @@ const FullPost = () => {
       <nav className="flex justify-between items-center p-5 bg-[#38496a] shadow-md h-16 fixed top-0 w-full z-50">
         <img src={logo} alt="Roamio Logo" className="h-12 w-auto" />
         <div className="flex space-x-6">
-          <a href="#" className="text-white hover:text-[#89A8B2] transition" onClick={handleFeeds}>Home</a>
+          <a href="#" className="text-white hover:text-[#89A8B2] transition" onClick={handleFeeds}>Feed</a>
           <a href="#" className="text-white hover:text-[#89A8B2] transition" onClick={handleMyProfile}>My Profile</a>
-          <a href="#" className="text-white hover:text-[#89A8B2] transition">Logout</a>
+          <a href="#" className="text-white hover:text-[#89A8B2] transition" onClick={handleLogout}>Logout</a>
         </div>
       </nav>
 
@@ -74,22 +201,33 @@ const FullPost = () => {
         {/* Profile Section */}
         <div className="w-1/4 p-10 bg-[#38496a] opacity-95 text-white flex flex-col items-center">
           <h2 className="text-xl font-semibold mb-4">Profile</h2>
-          <img src={post.profilePic} alt="Profile" className="w-24 h-24 rounded-full object-cover" />
+          <img src={defaultpic} alt="Profile" className="w-24 h-24 rounded-full object-cover" />
           <p className="text-lg font-semibold mt-2">{post.username}</p>
-          <button
-            onClick={toggleFollow}
-            className={`mt-3 px-6 py-2 rounded-lg font-semibold transition ${
-              isFollowing ? "bg-red-500 text-white" : "bg-[#4A7C88] text-white hover:bg-[#4a7c8876]"
-            }`}
+          {!isOwnPost && (
+          <div className="mt-4">
+            {isFollowing ? (
+              <button
+            onClick={handleUnfollow}
+            className={"mt-3 px-6 py-2 rounded-lg font-semibold transition bg-red-500 text-white"}
           >
-            {isFollowing ? "Unfollow -" : "Follow +"}
-          </button>
+          Unfollow -
+          </button>):(
+      <button
+        onClick={handleFollow}
+        className="mt-3 px-6 py-2 rounded-lg font-semibold transition bg-[#4A7C88] text-white hover:bg-[#4a7c8876]"
+      >
+        Follow +
+      </button>
+    )}
+    </div>
+)}
         </div>
 
         {/* Post Content Section */}
         <div className="w-3/4 p-6 bg-[#F1F0E8]">
-          <h1 className="text-2xl text-[#4A7C88] font-bold mb-4">{post.title}</h1>
-          <p className="text-lg text-gray-600 mb-4">{post.content}</p>
+          <h1 className="text-2xl text-[#4A7C88] font-bold mb-4">{post.Title}</h1>
+          <p className="text-sm text-gray-600 mb-4">{post.Description}</p>
+          
 
           {/* Comments Section */}
           <div className="mt-6">
@@ -121,6 +259,7 @@ const FullPost = () => {
         </div>
       </div>
     </div>
+
   );
 };
 

@@ -15,7 +15,7 @@ function App() {
         <Route path="/feeds" element={<Feeds />} />
         <Route path="/post" element={<PostForm />} />
         <Route path="/post/:postId" element={<FullPost />} />
-         <Route path="/myprofile" element={<MyProfile />} />
+        <Route path="/myprofile/:username" element={<MyProfile />} />
       </Routes>
     </Router>
   );
