@@ -31,16 +31,19 @@ func main() {
 		AllowCredentials: true,
 	}))
 	router.GET("/users", handlers.GetAllUsers)
-	router.POST("/users/register", handlers.CreateUser)
-	router.POST("/users/login", handlers.Login)
 	router.GET("/itineraries", handlers.GetAllItinerary)
 	router.POST("/itineraries", handlers.CreateItinerary)
 	router.GET("/itineraries/user/:userID", handlers.GetItineraryByUserId)
 	router.GET("/itineraries/state/:stateID", handlers.GetItineraryByStateId)
+	router.GET("/itineraries/post/:postID", handlers.GetItineraryByPostId)
+
+	router.POST("/users/register", handlers.CreateUser)
+	router.POST("/users/login", handlers.Login)
 	router.POST("/users/follow", handlers.CreateFollow)
 	router.GET("/users/followers", handlers.GetFollowers)
 	router.GET("/users/followings", handlers.GetFollowings)
 	router.POST("/users/unfollow", handlers.Unfollow)
+	router.POST("/users/follow/check", handlers.IsFollowing)
 
 	router.Run(":8080")
 }

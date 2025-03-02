@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -379,4 +380,40 @@ func Unfollow(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Successfully unfollowed"})
+}
+
+func IsFollowing(c *gin.Context) {
+	database, err := api.DatabaseConnection()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database connection failed"})
+		return
+	}
+
+	var requestBody struct {
+		FollowerID uint   `json:"follower_id" binding:"required"`
+		TargetID   uint   `json:"target_id" binding:"required"`
+		Type       string `json:"type" binding:"required,oneof=user page"`
+	}
+
+	if err := c.ShouldBindJSON(&requestBody); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+		return
+	}
+
+	var follow models.Follows
+	err = database.Where("follower_id = ? AND target_id = ? AND type = ?",
+		requestBody.FollowerID,
+		requestBody.TargetID,
+		requestBody.Type).
+		First(&follow).Error
+
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		c.JSON(http.StatusOK, gin.H{"isFollowing": false})
+		return
+	} else if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"isFollowing": true})
 }

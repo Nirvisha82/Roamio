@@ -1,12 +1,14 @@
 package handlers
 
 import (
+	"errors"
 	"log"
 	"net/http"
 	"roamio/backend/api"
 	"roamio/backend/models"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 func GetAllItinerary(c *gin.Context) {
@@ -14,11 +16,23 @@ func GetAllItinerary(c *gin.Context) {
 	if err != nil {
 		log.Fatal("failed to connect to Database")
 	}
-	var itineraries []models.Itinerary
-	result := database.Find(&itineraries)
+	type ItineraryResponse struct {
+		models.Itinerary
+		Username string `json:"username"`
+	}
+
+	var itineraries []ItineraryResponse
+
+	result := database.Table("itineraries").
+		Select("itineraries.*, users.username").
+		Joins("LEFT JOIN users ON users.id = itineraries.userID").
+		Scan(&itineraries)
+
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+		return
 	}
+
 	c.JSON(http.StatusOK, itineraries)
 }
 
@@ -60,7 +74,7 @@ func GetItineraryByUserId(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve itineraries"})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"itineraries": itineraries})
+	c.JSON(http.StatusOK, itineraries)
 }
 
 func GetItineraryByStateId(c *gin.Context) {
@@ -77,4 +91,38 @@ func GetItineraryByStateId(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"itineraries": itineraries})
+}
+
+func GetItineraryByPostId(c *gin.Context) {
+	database, err := api.DatabaseConnection()
+	if err != nil {
+		log.Fatal("failed to connect to Database")
+	}
+
+	type Response struct {
+		models.Itinerary
+		Username string `json:"username"`
+	}
+
+	postID := c.Param("postID")
+	var response Response
+
+	// Get itinerary with username using JOIN
+	err = database.Table("itineraries").
+		Select("itineraries.*, users.username").
+		Joins("LEFT JOIN users ON users.id = itineraries.userID").
+		Where("itineraries.id = ?", postID).
+		First(&response).
+		Error
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Itinerary not found"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve itinerary"})
+		}
+		return
+	}
+
+	c.JSON(http.StatusOK, response)
 }
