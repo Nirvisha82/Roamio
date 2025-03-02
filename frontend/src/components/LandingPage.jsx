@@ -86,9 +86,9 @@ const LandingPage = () => {
       <nav className="flex justify-between items-center p-5 bg-[#38496a] shadow-md h-16 fixed top-0 w-full z-50">
         <img src={logo} alt="Roamio Logo" className="h-12 w-auto" />
         <div className="flex space-x-6">
-          <a href="#register" className="text-white hover:text-[#89A8B2] transition">Join Us</a>
-          <a href="#features" className="text-white hover:text-[#89A8B2] transition">Our Features</a>
-          <a href="#team" className="text-white hover:text-[#89A8B2] transition">Our Team</a>
+          <a href="#register" data-testid="navbar-join" className="text-white hover:text-[#89A8B2] transition">Join Us</a>
+          <a href="#features" data-testid="navbar-features" className="text-white hover:text-[#89A8B2] transition">Our Features</a>
+          <a href="#team" data-testid="navbar-team" className="text-white hover:text-[#89A8B2] transition">Our Team</a>
         </div>
       </nav>
 
@@ -167,8 +167,8 @@ const LandingPage = () => {
             transition={{ duration: 1 }}
           >
             <div className="flex justify-center mb-6">
-              <button onClick={() => setIsSignUp(true)} className={`px-4 py-2 ${isSignUp ? 'bg-[#38496a] text-white' : 'bg-gray-200'} rounded-l-md`}>Sign Up</button>
-              <button onClick={() => setIsSignUp(false)} className={`px-4 py-2 ${!isSignUp ? 'bg-[#38496a] text-white' : 'bg-gray-200'} rounded-r-md`}>Login</button>
+              <button data-testid="signup-nav-button" onClick={() => setIsSignUp(true)} className={`px-4 py-2 ${isSignUp ? 'bg-[#38496a] text-white' : 'bg-gray-200'} rounded-l-md`}>Sign Up</button>
+              <button data-testid="login-nav-button" onClick={() => setIsSignUp(false)} className={`px-4 py-2 ${!isSignUp ? 'bg-[#38496a] text-white' : 'bg-gray-200'} rounded-r-md`}>Login</button>
             </div>
             {isSignUp ? (
               <div>
@@ -189,7 +189,7 @@ const LandingPage = () => {
                   />
                 </div>
                 {errorMessage && <p className="text-red-600 text-center">{errorMessage}</p>}
-                <button
+                <button data-testid="signup-button"
                   className="w-full bg-[#38496a] text-white py-2 rounded"
                   onClick={handleSignUpSubmit}
                 >
@@ -202,7 +202,7 @@ const LandingPage = () => {
                 <input type="email" placeholder="Email" className="w-full p-2 mb-3 border rounded" />
                 <input type="password" placeholder="Password" className="w-full p-2 mb-3 border rounded" />
                 {loginError && <p className="text-red-600 text-center">{loginError}</p>}
-                <button id="login-button" className="w-full bg-[#38496a] text-white py-2 rounded" onClick={handleLoginSubmit}>Login</button>
+                <button data-testid="login-button" className="w-full bg-[#38496a] text-white py-2 rounded" onClick={handleLoginSubmit}>Login</button>
               </div>
             )}
           </motion.div>

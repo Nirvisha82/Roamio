@@ -1,8 +1,11 @@
 import { render, screen } from '@testing-library/react';
 import App from './App';
 
-test('renders learn react link', () => {
-  render(<App />);
-  const linkElement = screen.getByText(/learn react/i);
-  expect(linkElement).toBeInTheDocument();
+describe('App Component', () => {
+  test('renders LandingPage on the root route', () => {
+    render(<App />);
+
+    const landingPageElement = screen.getByText(/Explore/i); 
+    expect(landingPageElement).toBeInTheDocument();
+  });
 });
