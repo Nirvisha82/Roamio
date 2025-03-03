@@ -8,6 +8,8 @@ import (
 	"roamio/backend/api"
 	"roamio/backend/models"
 
+	_ "roamio/backend/docs"
+
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -53,7 +55,71 @@ func checkPasswordHash(password, hash string) bool {
 	return err == nil
 }
 
-// register a user/account
+// Retrieve Followers/following func
+func RetrieveFollowers(database *gorm.DB, targetID uint, followType string) ([]struct {
+	ID       uint
+	Username string
+}, error) {
+	var followers []struct {
+		ID       uint
+		Username string
+	}
+
+	err := database.Model(&models.User{}).
+		Select("users.id, users.username").
+		Joins("JOIN follows ON follows.follower_id = users.id").
+		Where("follows.target_id = ? AND follows.type = ?", targetID, followType).
+		Scan(&followers).Error
+
+	return followers, err
+}
+
+// Retrieve following
+func RetrieveFollowings(database *gorm.DB, followerID uint) ([]struct {
+	Type string `json:"type"` // Either "user" or "page"
+	ID   uint   `json:"id"`
+	Name string `json:"name"`
+}, error) {
+	var followings []struct {
+		Type string `json:"type"` // Either "user" or "page"
+		ID   uint   `json:"id"`
+		Name string `json:"name"`
+	}
+
+	// Query for users being followed
+	err := database.Table("follows").
+		Select("'user' as type, users.id, users.username as name").
+		Joins("JOIN users ON users.id = follows.target_id").
+		Where("follows.follower_id = ? AND follows.type = 'user'", followerID).
+		Scan(&followings).Error
+	if err != nil {
+		return nil, err
+	}
+
+	// Query for pages being followed
+	err = database.Table("follows").
+		Select("'page' as type, pages.id, pages.name").
+		Joins("JOIN pages ON pages.id = follows.target_id").
+		Where("follows.follower_id = ? AND follows.type = 'page'", followerID).
+		Scan(&followings).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return followings, nil
+}
+
+// @Summary Create a new user
+// @Description Creates a new user with the provided information
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param user body models.createUserInput true "User information"
+// @Success 200 "User registered"
+// @Failure 400 "Invalid input data"
+// @Failure 409  "Username or Email already exists"
+// @Failure 500  "Internal server error"
+// @Router /users/register [post]
 func CreateUser(c *gin.Context) {
 	database, err := api.DatabaseConnection()
 	if err != nil {
@@ -92,7 +158,17 @@ func CreateUser(c *gin.Context) {
 
 }
 
-// User Login
+// @Summary User login
+// @Description Logs in the user with a username or email and password.
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param user body models.loginUser true "Login credentials"
+// @Success 200 {object} models.loginResponse "Login successful"
+// @Failure 400 "Invalid input data"
+// @Failure 401 "Unauthorized - Invalid credentials"
+// @Failure 500 "Internal server error"
+// @Router /users/login [post]
 func Login(c *gin.Context) {
 	database, err := api.DatabaseConnection()
 	if err != nil {
@@ -142,7 +218,18 @@ func Login(c *gin.Context) {
 	})
 }
 
-// To follow page/ User
+// @Summary Follow a user or page
+// @Description Add a follow relationship between a follower and target.
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param request body models.UnfollowRequest true "Follower ID, Target ID, and type"
+// @Success 200 "{"message":"Successfully followed"}"
+// @Failure 400 "{"message":"Invalid request body or type"}"
+// @Failure 404 "{"message":"User or target not found"}"
+// @Failure 409 "{"message":"Cannot follow self or already following"}"
+// @Failure 500 "{"message":"Internal server error"}"
+// @Router /users/follow [post]
 func CreateFollow(c *gin.Context) {
 	database, err := api.DatabaseConnection()
 	if err != nil {
@@ -216,61 +303,17 @@ func CreateFollow(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Follow created"})
 }
 
-// Retrieve Followers/following func
-func RetrieveFollowers(database *gorm.DB, targetID uint, followType string) ([]struct {
-	ID       uint
-	Username string
-}, error) {
-	var followers []struct {
-		ID       uint
-		Username string
-	}
-
-	err := database.Model(&models.User{}).
-		Select("users.id, users.username").
-		Joins("JOIN follows ON follows.follower_id = users.id").
-		Where("follows.target_id = ? AND follows.type = ?", targetID, followType).
-		Scan(&followers).Error
-
-	return followers, err
-}
-
-// Retrieve following
-func RetrieveFollowings(database *gorm.DB, followerID uint) ([]struct {
-	Type string `json:"type"` // Either "user" or "page"
-	ID   uint   `json:"id"`
-	Name string `json:"name"`
-}, error) {
-	var followings []struct {
-		Type string `json:"type"` // Either "user" or "page"
-		ID   uint   `json:"id"`
-		Name string `json:"name"`
-	}
-
-	// Query for users being followed
-	err := database.Table("follows").
-		Select("'user' as type, users.id, users.username as name").
-		Joins("JOIN users ON users.id = follows.target_id").
-		Where("follows.follower_id = ? AND follows.type = 'user'", followerID).
-		Scan(&followings).Error
-	if err != nil {
-		return nil, err
-	}
-
-	// Query for pages being followed
-	err = database.Table("follows").
-		Select("'page' as type, pages.id, pages.name").
-		Joins("JOIN pages ON pages.id = follows.target_id").
-		Where("follows.follower_id = ? AND follows.type = 'page'", followerID).
-		Scan(&followings).Error
-	if err != nil {
-		return nil, err
-	}
-
-	return followings, nil
-}
-
-// Retrieve followers api route
+// @Summary Retrieve followers
+// @Description Get a list of followers for a user or page.
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param request body models.GetFollowersRequest true "Target ID and type"
+// @Success 200 {array} models.Follower "List of followers"
+// @Failure 400 "{"message":"Invalid request body or type}"
+// @Failure 404 "{"message":"Target not found}"
+// @Failure 500 "{"message":"Failed to retrieve followers}"
+// @Router /users/followers [post]
 func GetFollowers(c *gin.Context) {
 	database, err := api.DatabaseConnection()
 	if err != nil {
@@ -279,7 +322,7 @@ func GetFollowers(c *gin.Context) {
 	}
 
 	var requestBody struct {
-		TargetID uint   `json:"id" binding:"required"`
+		TargetID uint   `json:"target_id" binding:"required"`
 		Type     string `json:"type" binding:"required"`
 	}
 	// Bind JSON body to the struct
@@ -315,6 +358,17 @@ func GetFollowers(c *gin.Context) {
 	c.JSON(http.StatusOK, followers)
 }
 
+// @Summary Retrieve followings
+// @Description Get a list of users or pages that a user is following.
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param request body models.GetFollowingsRequest true "User ID"
+// @Success 200 {array} models.Following "List of followings"
+// @Failure 400 "{"message":"Invalid request body"}"
+// @Failure 404 "{"message":"User not found"}"
+// @Failure 500 "{"message":"Failed to retrieve followings"}"
+// @Router /users/followings [post]
 func GetFollowings(c *gin.Context) {
 	database, err := api.DatabaseConnection()
 	if err != nil {
@@ -347,7 +401,17 @@ func GetFollowings(c *gin.Context) {
 	c.JSON(http.StatusOK, followings)
 }
 
-// Unfollowing logic
+// @Summary Unfollow a user or page
+// @Description Remove a follow relationship between a follower and target.
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param request body models.UnfollowRequest true "Follower ID, Target ID, and type"
+// @Success 200 "{"message":"Successfully unfollowed"}"
+// @Failure 400 "{"message":"Invalid request body or type"}"
+// @Failure 404 "{"message":"Follow relationship not found"}"
+// @Failure 500 "{"message":"Failed to unfollow"}"
+// @Router /users/unfollow [post]
 func Unfollow(c *gin.Context) {
 	database, err := api.DatabaseConnection()
 	if err != nil {
@@ -383,6 +447,16 @@ func Unfollow(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Successfully unfollowed"})
 }
 
+// @Summary Check follow status
+// @Description Check if a follower is following a target (user or page).
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param request body models.IsFollowingRequest true "Follower ID, Target ID, and type"
+// @Success 200 "{"message":"true"}"
+// @Failure 400 "{"message":"Invalid request body or type"}"
+// @Failure 500 "{"message":"Database error"}"
+// @Router /users/follow/check [post]
 func IsFollowing(c *gin.Context) {
 	database, err := api.DatabaseConnection()
 	if err != nil {
