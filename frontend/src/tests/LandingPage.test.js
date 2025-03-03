@@ -10,12 +10,10 @@ describe('Navbar', () => {
         <LandingPage />
       </Router>
     );
-    
-    // Check if logo is displayed
+
     const logo = screen.getByAltText(/Roamio Logo/i);
     expect(logo).toBeInTheDocument();
 
-    // Check if navigation links are displayed
     const joinUsLink = screen.getByTestId('navbar-join');
     const featuresLink = screen.getByTestId('navbar-features');
     const teamLink = screen.getByTestId('navbar-team');
