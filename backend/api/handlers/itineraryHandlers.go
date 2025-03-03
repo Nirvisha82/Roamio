@@ -5,12 +5,20 @@ import (
 	"log"
 	"net/http"
 	"roamio/backend/api"
+	_ "roamio/backend/docs"
 	"roamio/backend/models"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
+// @Summary Get all itineraries
+// @Description Retrieve all itineraries with user details.
+// @Tags itineraries
+// @Produce json
+// @Success 200 {array} models.ItineraryResponse "List of itineraries"
+// @Failure 500 {object} models.ErrorResponse "Internal server error"
+// @Router /itineraries [get]
 func GetAllItinerary(c *gin.Context) {
 	database, err := api.DatabaseConnection()
 	if err != nil {
@@ -36,6 +44,16 @@ func GetAllItinerary(c *gin.Context) {
 	c.JSON(http.StatusOK, itineraries)
 }
 
+// @Summary Create a new itinerary
+// @Description Create a new itinerary with required fields.
+// @Tags itineraries
+// @Accept json
+// @Produce json
+// @Param itinerary body models.CreateItineraryRequest true "Itinerary details"
+// @Success 201 {object} models.SuccessResponse "Itinerary created successfully"
+// @Failure 400 {object} models.ErrorResponse "Invalid input data or missing fields"
+// @Failure 500 {object} models.ErrorResponse "Internal server error"
+// @Router /itineraries [post]
 func CreateItinerary(c *gin.Context) {
 	database, err := api.DatabaseConnection()
 	if err != nil {
@@ -61,6 +79,15 @@ func CreateItinerary(c *gin.Context) {
 
 }
 
+// @Summary Get itineraries by user ID
+// @Description Retrieve all itineraries created by a specific user.
+// @Tags itineraries
+// @Produce json
+// @Param userID path int true "User ID"
+// @Success 200 {array} models.responseItinerary "List of itineraries"
+// @Failure 404 {object} models.ErrorResponse "User not found"
+// @Failure 500 {object} models.ErrorResponse "Internal server error"
+// @Router /itineraries/user/{userID} [get]
 func GetItineraryByUserId(c *gin.Context) {
 	database, err := api.DatabaseConnection()
 	if err != nil {
@@ -77,6 +104,15 @@ func GetItineraryByUserId(c *gin.Context) {
 	c.JSON(http.StatusOK, itineraries)
 }
 
+// @Summary Get itineraries by state ID
+// @Description Retrieve all itineraries associated with a specific state.
+// @Tags itineraries
+// @Produce json
+// @Param stateID path int true "State ID"
+// @Success 200 {array} models.responseItinerary "List of itineraries"
+// @Failure 404 {object} models.ErrorResponse "State not found"
+// @Failure 500 {object} models.ErrorResponse "Internal server error"
+// @Router /itineraries/state/{stateID} [get]
 func GetItineraryByStateId(c *gin.Context) {
 	database, err := api.DatabaseConnection()
 	if err != nil {
@@ -93,6 +129,15 @@ func GetItineraryByStateId(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"itineraries": itineraries})
 }
 
+// @Summary Get itinerary by post ID
+// @Description Retrieve an itinerary by its post ID, including user details.
+// @Tags itineraries
+// @Produce json
+// @Param postID path int true "Post ID"
+// @Success 200 {object} models.responseItinerary "Itinerary details with user information"
+// @Failure 404 {object} models.ErrorResponse "Itinerary not found"
+// @Failure 500 {object} models.ErrorResponse "Internal server error"
+// @Router /itineraries/post/{postID} [get]
 func GetItineraryByPostId(c *gin.Context) {
 	database, err := api.DatabaseConnection()
 	if err != nil {
