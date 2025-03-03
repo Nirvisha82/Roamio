@@ -202,7 +202,7 @@ const LandingPage = () => {
                 <input type="email" placeholder="Email" className="w-full p-2 mb-3 border rounded" />
                 <input type="password" placeholder="Password" className="w-full p-2 mb-3 border rounded" />
                 {loginError && <p className="text-red-600 text-center">{loginError}</p>}
-                <button data-testid="login-button" className="w-full bg-[#38496a] text-white py-2 rounded" onClick={handleLoginSubmit}>Login</button>
+                <button data-testid="login-button" id="login-button" className="w-full bg-[#38496a] text-white py-2 rounded" onClick={handleLoginSubmit}>Login</button>
               </div>
             )}
           </motion.div>
