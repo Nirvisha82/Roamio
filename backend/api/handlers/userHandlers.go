@@ -161,7 +161,8 @@ func CreateFollow(c *gin.Context) {
 		return
 	}
 
-	if followReq.TargetID == followReq.FollowerID {
+	if (followReq.Type == "user") && (followReq.TargetID == followReq.FollowerID) {
+		// if (followReq.TargetID == followReq.FollowerID) {
 		c.JSON(http.StatusConflict, gin.H{"error": "Cannot follow self"})
 		return
 	}
