@@ -5,12 +5,23 @@ import (
 	"os"
 	"roamio/backend/api/handlers"
 
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
+
+	_ "roamio/backend/docs"
+
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )
 
+// @title Roamio
+// @version 0.2
+// @description The api to Roamio's server.
+// @host localhost:8080
+
 func main() {
+
 	err := godotenv.Load()
 	if err != nil {
 		log.Println("Warning: No .env file found")
@@ -30,6 +41,8 @@ func main() {
 		AllowHeaders:     []string{"Content-Type", "Authorization"},
 		AllowCredentials: true,
 	}))
+	url := ginSwagger.URL("http://localhost:8080/swagger/doc.json")
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, url))
 	router.GET("/users", handlers.GetAllUsers)
 	router.GET("/itineraries", handlers.GetAllItinerary)
 	router.POST("/itineraries", handlers.CreateItinerary)
