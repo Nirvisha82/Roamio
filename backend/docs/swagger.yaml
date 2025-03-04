@@ -1,0 +1,592 @@
+definitions:
+  models.CreateItineraryRequest:
+    properties:
+      budget:
+        example: $1000
+        type: string
+      num_days:
+        example: 5
+        type: integer
+      num_nights:
+        example: 4
+        type: integer
+      size:
+        example: 3
+        type: integer
+      state_id:
+        example: 2
+        type: integer
+      title:
+        example: Trip to Florida
+        type: string
+      user_id:
+        example: 1
+        type: integer
+    required:
+    - budget
+    - num_days
+    - num_nights
+    - size
+    - state_id
+    - title
+    - user_id
+    type: object
+  models.ErrorResponse:
+    properties:
+      error:
+        example: An error occurred
+        type: string
+    type: object
+  models.Follower:
+    properties:
+      full_name:
+        example: John Doe
+        type: string
+      id:
+        example: 1
+        type: integer
+    type: object
+  models.Following:
+    properties:
+      full_name:
+        example: Jane Smith
+        type: string
+      id:
+        example: 2
+        type: integer
+    type: object
+  models.GetFollowersRequest:
+    properties:
+      target_id:
+        example: 1
+        type: integer
+      type:
+        enum:
+        - user
+        - page
+        example: user
+        type: string
+    required:
+    - target_id
+    - type
+    type: object
+  models.GetFollowingsRequest:
+    properties:
+      user_id:
+        example: 1
+        type: integer
+    required:
+    - user_id
+    type: object
+  models.IsFollowingRequest:
+    properties:
+      follower_id:
+        example: 1
+        type: integer
+      target_id:
+        example: 2
+        type: integer
+      type:
+        enum:
+        - user
+        - page
+        example: user
+        type: string
+    required:
+    - follower_id
+    - target_id
+    - type
+    type: object
+  models.Itinerary:
+    properties:
+      budget:
+        type: string
+      description:
+        type: string
+      highlights:
+        type: string
+      id:
+        type: integer
+      images:
+        type: string
+      numDays:
+        type: integer
+      numNights:
+        type: integer
+      size:
+        type: integer
+      stateId:
+        type: integer
+      suggestions:
+        type: string
+      title:
+        type: string
+      userID:
+        type: integer
+    type: object
+  models.ItineraryResponse:
+    properties:
+      itinerary:
+        $ref: '#/definitions/models.Itinerary'
+      username:
+        example: john_doe
+        type: string
+    type: object
+  models.SuccessResponse:
+    properties:
+      message:
+        example: Operation successful
+        type: string
+    type: object
+  models.UnfollowRequest:
+    properties:
+      follower_id:
+        example: 1
+        type: integer
+      target_id:
+        example: 2
+        type: integer
+      type:
+        enum:
+        - user
+        - page
+        example: user
+        type: string
+    required:
+    - follower_id
+    - target_id
+    - type
+    type: object
+  models.createUserInput:
+    properties:
+      DOB:
+        description: |-
+          Date of birth of the user in YYYY-MM-DD format
+          Example: 2000-04-08
+        type: string
+      Email:
+        description: |-
+          Email address of the user
+          Example: ppatel@ufl.edu
+        type: string
+      Fullname:
+        description: |-
+          Full name of the user
+          Example: Parth Patel
+        type: string
+      Location:
+        description: |-
+          Location of the user
+          Example: Kansas
+        type: string
+      Password:
+        description: |-
+          Password for the user account
+          Example: test123
+        type: string
+      Username:
+        description: |-
+          Username for the user account
+          Example: ParthPatel
+        type: string
+    type: object
+  models.loginResponse:
+    properties:
+      message:
+        example: Login successful
+        type: string
+      user:
+        properties:
+          DOB:
+            example: "2002-05-26"
+            type: string
+          Email:
+            example: nsoni@ufl.edu
+            type: string
+          Fullname:
+            example: Nirvisha Soni
+            type: string
+          ID:
+            example: 1
+            type: integer
+          Location:
+            example: Gainesville
+            type: string
+          Password:
+            example: ""
+            type: string
+          Username:
+            example: NirvishaSoni
+            type: string
+        type: object
+    type: object
+  models.loginUser:
+    properties:
+      password:
+        type: string
+      username_or_email:
+        type: string
+    required:
+    - password
+    - username_or_email
+    type: object
+  models.responseItinerary:
+    properties:
+      budget:
+        example: $1000
+        type: string
+      id:
+        example: 1
+        type: integer
+      num_days:
+        example: 5
+        type: integer
+      num_nights:
+        example: 4
+        type: integer
+      size:
+        example: 3
+        type: integer
+      state_id:
+        example: 2
+        type: integer
+      title:
+        example: Trip to Florida
+        type: string
+      user_id:
+        example: 1
+        type: integer
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: The api to Roamio's server.
+  title: Roamio
+  version: "0.2"
+paths:
+  /itineraries:
+    get:
+      description: Retrieve all itineraries with user details.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of itineraries
+          schema:
+            items:
+              $ref: '#/definitions/models.ItineraryResponse'
+            type: array
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Get all itineraries
+      tags:
+      - itineraries
+    post:
+      consumes:
+      - application/json
+      description: Create a new itinerary with required fields.
+      parameters:
+      - description: Itinerary details
+        in: body
+        name: itinerary
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateItineraryRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Itinerary created successfully
+          schema:
+            $ref: '#/definitions/models.SuccessResponse'
+        "400":
+          description: Invalid input data or missing fields
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Create a new itinerary
+      tags:
+      - itineraries
+  /itineraries/post/{postID}:
+    get:
+      description: Retrieve an itinerary by its post ID, including user details.
+      parameters:
+      - description: Post ID
+        in: path
+        name: postID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Itinerary details with user information
+          schema:
+            $ref: '#/definitions/models.responseItinerary'
+        "404":
+          description: Itinerary not found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Get itinerary by post ID
+      tags:
+      - itineraries
+  /itineraries/state/{stateID}:
+    get:
+      description: Retrieve all itineraries associated with a specific state.
+      parameters:
+      - description: State ID
+        in: path
+        name: stateID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of itineraries
+          schema:
+            items:
+              $ref: '#/definitions/models.responseItinerary'
+            type: array
+        "404":
+          description: State not found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Get itineraries by state ID
+      tags:
+      - itineraries
+  /itineraries/user/{userID}:
+    get:
+      description: Retrieve all itineraries created by a specific user.
+      parameters:
+      - description: User ID
+        in: path
+        name: userID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of itineraries
+          schema:
+            items:
+              $ref: '#/definitions/models.responseItinerary'
+            type: array
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Get itineraries by user ID
+      tags:
+      - itineraries
+  /users/follow:
+    post:
+      consumes:
+      - application/json
+      description: Add a follow relationship between a follower and target.
+      parameters:
+      - description: Follower ID, Target ID, and type
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.UnfollowRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"message":"Successfully followed"}'
+        "400":
+          description: '{"message":"Invalid request body or type"}'
+        "404":
+          description: '{"message":"User or target not found"}'
+        "409":
+          description: '{"message":"Cannot follow self or already following"}'
+        "500":
+          description: '{"message":"Internal server error"}'
+      summary: Follow a user or page
+      tags:
+      - users
+  /users/follow/check:
+    post:
+      consumes:
+      - application/json
+      description: Check if a follower is following a target (user or page).
+      parameters:
+      - description: Follower ID, Target ID, and type
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.IsFollowingRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"message":"true"}'
+        "400":
+          description: '{"message":"Invalid request body or type"}'
+        "500":
+          description: '{"message":"Database error"}'
+      summary: Check follow status
+      tags:
+      - users
+  /users/followers:
+    post:
+      consumes:
+      - application/json
+      description: Get a list of followers for a user or page.
+      parameters:
+      - description: Target ID and type
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.GetFollowersRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of followers
+          schema:
+            items:
+              $ref: '#/definitions/models.Follower'
+            type: array
+        "400":
+          description: '{"message":"Invalid request body or type}'
+        "404":
+          description: '{"message":"Target not found}'
+        "500":
+          description: '{"message":"Failed to retrieve followers}'
+      summary: Retrieve followers
+      tags:
+      - users
+  /users/followings:
+    post:
+      consumes:
+      - application/json
+      description: Get a list of users or pages that a user is following.
+      parameters:
+      - description: User ID
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.GetFollowingsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of followings
+          schema:
+            items:
+              $ref: '#/definitions/models.Following'
+            type: array
+        "400":
+          description: '{"message":"Invalid request body"}'
+        "404":
+          description: '{"message":"User not found"}'
+        "500":
+          description: '{"message":"Failed to retrieve followings"}'
+      summary: Retrieve followings
+      tags:
+      - users
+  /users/login:
+    post:
+      consumes:
+      - application/json
+      description: Logs in the user with a username or email and password.
+      parameters:
+      - description: Login credentials
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/models.loginUser'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Login successful
+          schema:
+            $ref: '#/definitions/models.loginResponse'
+        "400":
+          description: Invalid input data
+        "401":
+          description: Unauthorized - Invalid credentials
+        "500":
+          description: Internal server error
+      summary: User login
+      tags:
+      - users
+  /users/register:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new user with the provided information
+      parameters:
+      - description: User information
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/models.createUserInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User registered
+        "400":
+          description: Invalid input data
+        "409":
+          description: Username or Email already exists
+        "500":
+          description: Internal server error
+      summary: Create a new user
+      tags:
+      - users
+  /users/unfollow:
+    post:
+      consumes:
+      - application/json
+      description: Remove a follow relationship between a follower and target.
+      parameters:
+      - description: Follower ID, Target ID, and type
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.UnfollowRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"message":"Successfully unfollowed"}'
+        "400":
+          description: '{"message":"Invalid request body or type"}'
+        "404":
+          description: '{"message":"Follow relationship not found"}'
+        "500":
+          description: '{"message":"Failed to unfollow"}'
+      summary: Unfollow a user or page
+      tags:
+      - users
+swagger: "2.0"

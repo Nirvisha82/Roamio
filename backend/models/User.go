@@ -9,3 +9,17 @@ type User struct {
 	Email    string `gorm:"column:email;unique;not null"`
 	Password string `gorm:"column:password;not null"`
 }
+
+// Table for user-user & user-page Follow.
+type Follows struct {
+	ID         uint   `gorm:"primaryKey"`
+	FollowerID uint   `gorm:"column:follower_id;index"` // User who is following
+	TargetID   uint   `gorm:"column:target_id;index"`   // ID of target (user/page)
+	Type       string `gorm:"column:type;not null"`
+}
+
+// Table for state and their IDs.
+type Page struct {
+	ID   uint   `gorm:"primaryKey"`
+	Name string `gorm:"unique;not null"` // State Name
+}

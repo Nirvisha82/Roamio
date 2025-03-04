@@ -1,7 +1,1 @@
-{
-"devDependencies": {
-  "tailwindcss": "^3.x.x",
-  "postcss": "^8.x.x",
-  "autoprefixer": "^10.x.x"
-}
-}
+{"devDependencies":{"autoprefixer":"^10.x.x","postcss":"^8.x.x","tailwindcss":"^3.x.x"},"dependencies":{"js-cookie":"^3.0.5"}}
