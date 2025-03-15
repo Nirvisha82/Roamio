@@ -28,7 +28,14 @@ const FullPost = () => {
   };
   
   const handleMyProfile = () => {
-    navigate("/myprofile"); 
+    if (user?.Username) {
+      navigate(`/myprofile/${user.Username}`);
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("currentUser");
+    navigate("/");
   };
 
   const [comments, setComments] = useState([
@@ -176,10 +183,6 @@ const handleUnfollow = async () => {
     console.error("Error unfollowing user:", error);
   }
 };
-const handleLogout = () => {
-  localStorage.removeItem("currentUser");
-  navigate("/");
-};
 
   if (!post) {
     return (
@@ -191,9 +194,25 @@ const handleLogout = () => {
       <nav className="flex justify-between items-center p-5 bg-[#38496a] shadow-md h-16 fixed top-0 w-full z-50">
         <img src={logo} alt="Roamio Logo" className="h-12 w-auto" />
         <div className="flex space-x-6">
-          <a href="#" className="text-white hover:text-[#89A8B2] transition" onClick={handleFeeds}>Feed</a>
-          <a href="#" className="text-white hover:text-[#89A8B2] transition" onClick={handleMyProfile}>My Profile</a>
-          <a href="#" className="text-white hover:text-[#89A8B2] transition" onClick={handleLogout}>Logout</a>
+        <button
+            className="text-white hover:text-[#89A8B2] transition"
+            onClick={handleFeeds}
+          >
+            Feed
+          </button>
+          <button
+            className="text-white hover:text-[#89A8B2] transition"
+            onClick={handleMyProfile}
+          >
+            My Profile
+          </button>
+          <button
+            className="text-white hover:text-[#89A8B2] transition"
+            onClick={handleLogout}
+          >
+            Logout
+          </button>
+          
         </div>
       </nav>
 
@@ -226,8 +245,12 @@ const handleLogout = () => {
         {/* Post Content Section */}
         <div className="w-3/4 p-6 bg-[#F1F0E8]">
           <h1 className="text-2xl text-[#4A7C88] font-bold mb-4">{post.Title}</h1>
-          <p className="text-sm text-gray-600 mb-4">{post.Description}</p>
-          
+          <p className="text-base text-gray-600 mb-4">{post.Description}</p>
+          <p className="text-sm text-gray-600 mb-4"> &nbsp; Number of Days: {post.NumDays} &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; Number of Nights: {post.NumNights}</p>
+          <p className="text-sm text-gray-600 mb-4"> &nbsp; Budget: {post.Budget}</p>
+          <p className="text-sm text-gray-600 mb-4"> &nbsp; Group Size: {post.Size}</p>
+          <p className="text-sm text-gray-600 mb-4"> &nbsp; Highlights: {post.Highlights}</p>
+          <p className="text-sm text-gray-600 mb-4"> &nbsp; Suggestions: {post.Suggestions}</p>
 
           {/* Comments Section */}
           <div className="mt-6">

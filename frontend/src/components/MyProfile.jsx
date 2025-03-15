@@ -60,6 +60,10 @@ const Profile = () => {
   };
 
   const handleFeeds = () => navigate("/feeds");
+  const handleLogout = () => {
+    localStorage.removeItem("currentUser");
+    navigate("/");
+  };
 
   if (loading) return <div className="text-center py-8">Loading profile...</div>;
   if (!user) return <div className="text-center py-8">User not found</div>;
@@ -76,6 +80,12 @@ const Profile = () => {
             onClick={handleFeeds}
           >
            Feed
+          </button>
+          <button 
+            className="text-white hover:text-[#89A8B2] transition" 
+            onClick={handleLogout}
+          >
+           Logout
           </button>
         </div>
       </nav>
@@ -120,17 +130,20 @@ const Profile = () => {
           <h2 className="text-2xl font-semibold text-[#2E5A6B] mb-4">My Itineraries</h2>
           {itineraries.length > 0 ? (
             itineraries.map((itinerary) => (
-              <div key={itinerary.ID} className="mb-4 p-4 bg-[#E5E1DA] rounded-lg shadow">
+              <div key={itinerary.ID} className="mb-4 p-4 bg-[#E5E1DA] rounded-lg shadow" style={{ cursor: 'pointer' }} onClick={() => navigate(`/post/${itinerary.ID}`)}>
                 <h3 className="text-xl font-bold text-[#2E5A6B]">{itinerary.Title}</h3>
                 <p className="text-gray-700 mb-2">{itinerary.Description}</p>
                 <div className="flex justify-between text-sm text-[#4A7C88]">
                   <span>{itinerary.NumDays} days • {itinerary.NumNights} nights</span>
                   <span>Budget: {itinerary.Budget}</span>
+                  <span>Group Size: {itinerary.Size}</span>&nbsp;
                 </div>
-                {itinerary.Highlights && (
+                {itinerary.Highlights && itinerary.Suggestions && (
                   <div className="mt-2 p-2 bg-white rounded">
                     <p className="font-medium text-[#2E5A6B]">Highlights:</p>
                     <p>{itinerary.Highlights}</p>
+                    <p className="font-medium text-[#2E5A6B]">Suggestions:</p>
+                    <p>{itinerary.Suggestions}</p>
                   </div>
                 )}
               </div>

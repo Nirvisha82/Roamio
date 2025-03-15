@@ -78,6 +78,7 @@ const Feeds = () => {
     // `http://localhost:8080/itineraries/user/${user?.ID}`
     fetchItineraries();
   }, []);
+  
   const handleLogout = () => {
     localStorage.removeItem("currentUser");
     navigate("/");

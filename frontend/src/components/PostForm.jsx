@@ -32,7 +32,14 @@ const PostForm = () => {
   };
   
   const handleMyProfile = () => {
-    navigate("/myprofile"); 
+    if (user?.Username) {
+      navigate(`/myprofile/${user.Username}`);
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("currentUser");
+    navigate("/");
   };
 
   const [days, setDays] = useState("");
@@ -133,9 +140,24 @@ const PostForm = () => {
       >
         <img src={logo} alt="Roamio Logo" className="h-12 w-auto" />
         <div className="flex space-x-6">
-        <a href="#" className="text-white hover:text-[#89A8B2] transition" onClick={handleFeeds}>Feed</a>
-          <a href="#" className="text-white hover:text-[#89A8B2] transition" onClick={handleMyProfile}>My Profile</a>
-          <a href="#" className="text-white hover:text-[#89A8B2] transition">Logout</a>
+        <button
+            className="text-white hover:text-[#89A8B2] transition"
+            onClick={handleFeeds}
+          >
+            Feed
+          </button>
+          <button
+            className="text-white hover:text-[#89A8B2] transition"
+            onClick={handleMyProfile}
+          >
+            My Profile
+          </button>
+          <button
+            className="text-white hover:text-[#89A8B2] transition"
+            onClick={handleLogout}
+          >
+            Logout
+          </button>
         </div>
       </motion.nav>
 
