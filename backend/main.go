@@ -58,7 +58,7 @@ func main() {
 	router.POST("/users/unfollow", handlers.Unfollow)
 	router.POST("/users/follow/check", handlers.IsFollowing)
 	router.POST("/users/profile-pic", handlers.UpdateProfilePic)
-	router.GET("/users/profile-pic", handlers.GetProfilePic)
+	router.GET("/users/:username/profile-pic", handlers.GetProfilePic)
 
 	router.Run(":8080")
 }
