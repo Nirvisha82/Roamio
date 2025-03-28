@@ -60,8 +60,15 @@ const PostForm = () => {
         return uploadResult.Location; // URL of uploaded file
       })
     );
-    return uploadedImageUrls;
+
+    // Join the image URLs into a single string with semicolons
+    const imageUrlsString = uploadedImageUrls.join('; ');
+
+    // Log image URLs string to the console
+    console.log("Uploaded Image URLs (semicolon separated):", imageUrlsString);
+    return imageUrlsString; // Return the semicolon-separated string
   };
+
 
   const handleFeeds = () => {
     navigate("/feeds");
@@ -166,7 +173,7 @@ const PostForm = () => {
     });
   };
 
-  const states = State.getStatesOfCountry("US").map((s) => ({value: s.isoCode, label: `${s.name} (${s.isoCode})`}));
+  const states = State.getStatesOfCountry("US").map((s) => ({ value: s.isoCode, label: `${s.name} (${s.isoCode})` }));
 
   return (
     <>
@@ -261,7 +268,12 @@ const PostForm = () => {
             </div>
 
             <div className="relative">
-              <Select options={states} value={selectedState} onChange={setSelectedState} placeholder="Select a State" />
+              <Select
+                options={states}
+                value={selectedState}
+                onChange={setSelectedState}
+                placeholder="Select a State"
+              />
             </div>
 
             {/* Number of Days */}
@@ -397,7 +409,7 @@ const PostForm = () => {
               </label>
             </div>
 
-             {/* Image Upload */}
+            {/* Image Upload */}
             <input
               type="file"
               multiple
