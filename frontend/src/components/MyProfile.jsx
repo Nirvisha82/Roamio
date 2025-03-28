@@ -63,32 +63,49 @@ const Profile = () => {
 
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
-    if (file) {
-      try {
-        const fileName = `${user.Username}-${Date.now()}-${file.name}`;
-        const params = {
-          Bucket: "roamio-my-profile", // Replace with your S3 bucket name
-          Key: fileName,
-          Body: file,
-          ContentType: file.type,
-        };
+    if (!file) return;
   
-        // Upload file to S3
-        const uploadResponse = await s3.upload(params).promise();
-        console.log("File uploaded successfully", uploadResponse);
+    try {
+      const fileName = `${user.Username}-${Date.now()}-${file.name}`;
+      const params = {
+        Bucket: "roamio-my-profile",
+        Key: fileName,
+        Body: file,
+        ContentType: file.type,
+      };
   
-        // After successful upload, set the image URL
-        const imageUrl = uploadResponse.Location; // S3 generated URL
-        setProfileImage(imageUrl);
+      // Upload to S3
+      const uploadResponse = await s3.upload(params).promise();
+      console.log("File uploaded successfully", uploadResponse);
   
-        // You can save the URL in user data, local storage, or back-end if necessary
-        // For example: localStorage.setItem("profileImage", imageUrl);
+      // Get the uploaded image URL
+      const imageUrl = uploadResponse.Location;
+      setProfileImage(imageUrl);
+
+      const fullImageUrl = `https://roamio-my-profile.s3.us-east-2.amazonaws.com/${imageUrl}`;
+      // Call API to update profile pic in backend
+      const response = await fetch("http://localhost:8080/users/update-profile-pic", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username: user.Username,
+          image_url: fullImageUrl,
+        }),
+      });
   
-      } catch (error) {
-        console.error("Error uploading image to S3:", error);
+      if (!response.ok) {
+        throw new Error("Failed to update profile picture");
       }
+  
+      console.log("Profile picture updated successfully");
+      
+    } catch (error) {
+      console.error("Error uploading image:", error);
     }
-  };  
+  };
+  
 
   const handleFeeds = () => navigate("/feeds");
   const handleLogout = () => {

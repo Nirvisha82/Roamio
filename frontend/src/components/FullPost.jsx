@@ -6,7 +6,8 @@ import profilePic1 from "../images/team1.jpg";
 import profilePic2 from "../images/team2.jpg";
 import profilePic3 from "../images/team3.jpg";
 import profilePic4 from "../images/team4.jpg";
-import defaultpic from "../images/default.jpg";
+
+const defaultpic="https://roamio-my-profile.s3.us-east-2.amazonaws.com/default.jpg";
 
 // const posts = [
 //   { id: 1, title: "Post 1", content: "This is the content of Post 1", profilePic: profilePic1, username: "SoniNirvisha" },
