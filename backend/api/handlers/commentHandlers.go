@@ -55,3 +55,26 @@ func GetAllComments(c *gin.Context) {
 	}
 	c.JSON(http.StatusCreated, gin.H{"comments": comments})
 }
+
+func GetCommentsByPostId(c *gin.Context) {
+	database, err := api.DatabaseConnection()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Database connection failed",
+		})
+		return
+	}
+
+	postID := c.Param("postID")
+	var comments []models.Comments
+	result := database.Where("postID = ?", postID).Find(&comments)
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "Failed to get list of all comments",
+			"details": result.Error.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{"comments": comments})
+}

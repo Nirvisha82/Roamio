@@ -60,6 +60,7 @@ func main() {
 
 	router.POST("/comments", handlers.CreateComment)
 	router.GET("/comments", handlers.GetAllComments)
+	router.GET("/comments/post/:postID", handlers.GetCommentsByPostId)
 
 	router.Run(":8080")
 }
