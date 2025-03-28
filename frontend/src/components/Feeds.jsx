@@ -1,4 +1,3 @@
-/* eslint-disable jsx-a11y/anchor-is-valid */
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Select from "react-select";
@@ -9,25 +8,22 @@ import profilePic2 from "../images/team2.jpg";
 import profilePic3 from "../images/team3.jpg";
 import profilePic4 from "../images/team4.jpg";
 
-const defaultpic="https://roamio-my-profile.s3.us-east-2.amazonaws.com/default.jpg";
-
 const Feeds = () => {
   const navigate = useNavigate();
   const [selectedState, setSelectedState] = useState(null);
   const [selectedCity, setSelectedCity] = useState(null);
   const [isScrolled, setIsScrolled] = useState(false);
   const [user, setUser] = useState(null); // Store user session info
+  const [profilePics, setProfilePics] = useState({}); // Store profile pics by username
 
-  // // Check if user is logged in
+  // Check if user is logged in
   useEffect(() => {
     const storedUser = localStorage.getItem("currentUser");
-    console.log('Session check:', storedUser);
-
     if (storedUser) {
       const parsedUser = JSON.parse(storedUser);
       setUser(parsedUser);
     } else {
-      navigate("/");
+      navigate("/"); // Redirect to login if not logged in
     }
 
     const handleScroll = () => setIsScrolled(window.scrollY > 0);
@@ -36,10 +32,10 @@ const Feeds = () => {
   }, [navigate]); // Added navigate to dependencies
 
   const posts = [
-    { id: 1, title: "Post 1", content: "This is the content of Post 1", profilePic: profilePic1, username: "SoniNirvisha" },
-    { id: 2, title: "Post 2", content: "This is the content of Post 2", profilePic: profilePic2, username: "RiddhiMehta" },
-    { id: 3, title: "Post 3", content: "This is the content of Post 3", profilePic: profilePic3, username: "Harsh" },
-    { id: 4, title: "Post 4", content: "This is the content of Post 4", profilePic: profilePic4, username: "NeelM" },
+    { id: 1, title: "Post 1", content: "This is the content of Post 1", username: "SoniNirvisha" },
+    { id: 2, title: "Post 2", content: "This is the content of Post 2", username: "RiddhiMehta" },
+    { id: 3, title: "Post 3", content: "This is the content of Post 3", username: "Harsh" },
+    { id: 4, title: "Post 4", content: "This is the content of Post 4", username: "NeelM" },
   ];
 
   const states = State.getStatesOfCountry("US").map((s) => ({ value: s.isoCode, label: s.name }));
@@ -48,55 +44,59 @@ const Feeds = () => {
     navigate("/post");
   };
 
-
-  // Updated handleMyProfile function
-  //   const handleMyProfile = () => {
-  //   navigate(`/myprofile/${user?.Username}`); // Changed from sessionUser to user
-  // };
-
   const handleMyProfile = () => {
     if (user?.Username) {
       navigate(`/myprofile/${user.Username}`);
     }
   };
 
-
-  // Replace the existing posts array with:
   const [itineraries, setItineraries] = useState([]);
-  // Add this useEffect above your existing useEffect
+
+  // Fetch itineraries
   useEffect(() => {
     const fetchItineraries = async () => {
       try {
         const response = await fetch("http://localhost:8080/itineraries");
-        if (!response.ok) throw new Error('Failed to fetch');
+        if (!response.ok) throw new Error('Failed to fetch itineraries');
         const data = await response.json();
         setItineraries(data);
+
+        // Fetch profile pictures for each user
+        const fetchProfilePics = async () => {
+          const pics = {};
+          for (const itinerary of data) {
+            const username = itinerary.username;
+            if (!pics[username]) {
+              try {
+                const userResponse = await fetch(`http://localhost:8080/users/${username}/profile-pic`);
+                if (userResponse.ok) {
+                  const userData = await userResponse.json();
+                  pics[username] = userData.profile_pic_url;
+                }
+              } catch (error) {
+                console.error("Error fetching profile pic for", username, error);
+              }
+            }
+          }
+          setProfilePics(pics);
+        };
+
+        fetchProfilePics();
       } catch (error) {
         console.error("Error fetching itineraries:", error);
       }
     };
-    // Modify fetch URL to:
-    // `http://localhost:8080/itineraries/user/${user?.ID}`
+
     fetchItineraries();
-  }, []);
-  
+  }, []); // Empty dependency array ensures this only runs once on component mount
+
   const handleLogout = () => {
     localStorage.removeItem("currentUser");
     navigate("/");
   };
 
-
-
   return (
     <div className="relative flex flex-col min-h-screen">
-      {/* <nav className="flex justify-between items-center p-5 bg-[#38496a] shadow-md h-16 fixed top-0 w-full z-50">
-        <img src={logo} alt="Roamio Logo" className="h-12 w-auto" />
-        <div className="flex space-x-6">
-          <a href="#" className="text-white hover:text-[#89A8B2] transition" onClick={handleMyProfile}>{user?.Fullname}</a>
-          <a href="#" className="text-white hover:text-[#89A8B2] transition" onClick={handleLogout}>Logout</a>
-        </div>
-      </nav> */}
-
       <nav className="flex justify-between items-center p-5 bg-[#38496a] shadow-md h-16 fixed top-0 w-full z-50">
         <img src={logo} alt="Roamio Logo" className="h-12 w-auto" />
         <div className="flex space-x-6">
@@ -127,9 +127,9 @@ const Feeds = () => {
         <div className="w-3/4 p-6 bg-[#F1F0E8]">
           <h1 className="text-2xl text-[#4A7C88] font-bold mb-4">
             {selectedCity
-              ? `${selectedCity.label}, ${selectedState?.label || ""}` // Show city and state if both are selected
+              ? `${selectedCity.label}, ${selectedState?.label || ""}`
               : selectedState
-                ? selectedState.label // Show only state if city is not selected
+                ? selectedState.label
                 : "Select a State & City"}
           </h1>
           <button
@@ -139,19 +139,22 @@ const Feeds = () => {
             Create Post
           </button>
 
-          {/* Post Cards Section */}
           <div className="mt-8 ml-8 flex flex-col gap-6">
             {itineraries.map((itinerary) => (
               <div
                 key={itinerary.ID}
-                onClick={() => navigate(`/post/${itinerary.ID}`)} // Navigate to FullPost on click
+                onClick={() => navigate(`/post/${itinerary.ID}`)} 
                 className="cursor-pointer w-full max-w-3xl p-6 bg-white rounded-lg shadow-lg hover:shadow-xl transition-transform transform hover:scale-105 relative"
               >
                 <div className="flex justify-between items-center">
                   <h3 className="text-lg font-semibold text-black">{itinerary.Title}</h3>
                   <div className="flex items-center space-x-2">
                     <span className="text-sm font-sm text-gray-400">{itinerary.username}</span>
-                    <img src={defaultpic} alt="Profile" className="w-7 h-7 rounded-full object-cover" />
+                    <img 
+                      src={profilePics[itinerary.username] || profilePic1} 
+                      alt="Profile" 
+                      className="w-7 h-7 rounded-full object-cover" 
+                    />
                   </div>
                 </div>
                 <p className="mt-2 text-sm text-gray-600">{itinerary.Description}</p>

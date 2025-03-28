@@ -26,36 +26,39 @@ const Profile = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Check session first
         const storedUser = localStorage.getItem("currentUser");
-        console.log('Session check:', storedUser);
-
         if (!storedUser) {
           navigate("/");
           return;
         }
-  
+
         const parsedUser = JSON.parse(storedUser);
         setUser(parsedUser);
-  
-        // Fetch itineraries AFTER setting user
-        const itinerariesResponse = await fetch(
-          `http://localhost:8080/itineraries/user/${parsedUser.ID}` // Use parsedUser directly
-        );
-        
-        if (!itinerariesResponse.ok) {
-          throw new Error('Failed to fetch itineraries');
+
+        // Fetch profile image
+        const profilePicResponse = await fetch(`http://localhost:8080/users/${parsedUser.Username}/profile-pic`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (profilePicResponse.ok) {
+          const data = await profilePicResponse.json();
+          setProfileImage(data.profile_pic_url);
         }
-        
-        const itinerariesData = await itinerariesResponse.json();
-        setItineraries(itinerariesData);
-  
+
+        // Fetch itineraries
+        const itinerariesResponse = await fetch(`http://localhost:8080/itineraries/user/${parsedUser.ID}`);
+        if (itinerariesResponse.ok) {
+          const itinerariesData = await itinerariesResponse.json();
+          setItineraries(itinerariesData);
+        }
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
         setLoading(false);
       }
-  
     };
 
     fetchData();
@@ -64,7 +67,7 @@ const Profile = () => {
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-  
+
     try {
       const fileName = `${user.Username}-${Date.now()}-${file.name}`;
       const params = {
@@ -73,16 +76,15 @@ const Profile = () => {
         Body: file,
         ContentType: file.type,
       };
-  
+
       // Upload to S3
       const uploadResponse = await s3.upload(params).promise();
       console.log("File uploaded successfully", uploadResponse);
-  
+
       // Get the uploaded image URL
       const imageUrl = uploadResponse.Location;
       setProfileImage(imageUrl);
 
-      const fullImageUrl = `https://roamio-my-profile.s3.us-east-2.amazonaws.com/${imageUrl}`;
       // Call API to update profile pic in backend
       const response = await fetch("http://localhost:8080/users/profile-pic", {
         method: "POST",
@@ -91,21 +93,21 @@ const Profile = () => {
         },
         body: JSON.stringify({
           username: user.Username,
-          image_url: fullImageUrl,
+          image_url: imageUrl,
         }),
       });
-  
+
       if (!response.ok) {
         throw new Error("Failed to update profile picture");
       }
-  
+
       console.log("Profile picture updated successfully");
-      
+
     } catch (error) {
       console.error("Error uploading image:", error);
     }
   };
-  
+
 
   const handleFeeds = () => navigate("/feeds");
   const handleLogout = () => {
@@ -117,23 +119,23 @@ const Profile = () => {
   if (!user) return <div className="text-center py-8">User not found</div>;
 
   return (
-    <div className="overflow-x-hidden min-h-screen bg-fixed bg-cover bg-center pb-5" 
-         style={{ backgroundImage: `url(${parallaximage})` }}>
+    <div className="overflow-x-hidden min-h-screen bg-fixed bg-cover bg-center pb-5"
+      style={{ backgroundImage: `url(${parallaximage})` }}>
       {/* Navbar */}
       <nav className="flex justify-between items-center p-5 bg-[#38496a] shadow-md h-16 fixed top-0 w-full z-50">
         <img src={logo} alt="Roamio Logo" className="h-12 w-auto" />
         <div className="flex space-x-6">
-          <button 
-            className="text-white hover:text-[#89A8B2] transition" 
+          <button
+            className="text-white hover:text-[#89A8B2] transition"
             onClick={handleFeeds}
           >
-           Feed
+            Feed
           </button>
-          <button 
-            className="text-white hover:text-[#89A8B2] transition" 
+          <button
+            className="text-white hover:text-[#89A8B2] transition"
             onClick={handleLogout}
           >
-           Logout
+            Logout
           </button>
         </div>
       </nav>
@@ -141,13 +143,13 @@ const Profile = () => {
       {/* Profile Content */}
       <div className="max-w-4xl mx-auto bg-[#ffffffee] p-8 rounded-2xl shadow-lg mt-20">
         <h1 className="text-3xl font-bold text-[#2E5A6B] mb-6">My Profile</h1>
-        
+
         {/* Profile Image Section */}
         <div className="flex items-center space-x-6 mb-8">
           <div className="w-32 h-32 bg-[#E5E1DA] rounded-full flex items-center justify-center overflow-hidden">
             {profileImage ? (
               <img
-                src={profileImage}
+                src={profileImage} // Use the fetched image URL here
                 alt="Profile"
                 className="w-full h-full object-cover"
               />
