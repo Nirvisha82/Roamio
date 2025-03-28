@@ -60,5 +60,10 @@ func main() {
 	router.POST("/users/profile-pic", handlers.UpdateProfilePic)
 	router.GET("/users/:username/profile-pic", handlers.GetProfilePic)
 
+	router.POST("/comments", handlers.CreateComment)
+	router.GET("/comments", handlers.GetAllComments)
+	router.GET("/comments/:postID", handlers.GetCommentsByPostId)
+	router.PUT("/comments", handlers.UpdateComment)
+
 	router.Run(":8080")
 }
