@@ -247,41 +247,22 @@ func GetFollowers(c *gin.Context) {
 		return
 	}
 
-	var requestBody struct {
-		TargetID string `json:"target_id" binding:"required"`
-		Type     string `json:"type" binding:"required"`
-	}
-	// Bind JSON body to the struct
-	if err := c.ShouldBindJSON(&requestBody); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
-		return
-	}
+	// Get parameters from URL
+	targetIDParam := c.Param("target_id") // Fetch target identifier (username or state code)
+	targetType := c.Param("type")         // Fetch type ("user" or "page")
 
 	// Validate the type field
-	if requestBody.Type != "user" && requestBody.Type != "page" {
+	if targetType != "user" && targetType != "page" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid type. Must be 'user' or 'page'"})
 		return
 	}
 
-	// var exists bool
-	// switch requestBody.Type {
-	// case "user":
-	// 	exists = database.Where("id = ?", requestBody.TargetID).First(&models.User{}).Error == nil
-	// case "page":
-	// 	exists = database.Where("id = ?", requestBody.TargetID).First(&models.States{}).Error == nil
-	// }
-
-	// if !exists {
-	// 	c.JSON(http.StatusNotFound, gin.H{"error": "Target not found"})
-	// 	return
-	// }
-
 	var targetID uint
 
-	switch requestBody.Type {
+	switch targetType {
 	case "user":
 		// Fetch the target ID using the GetUserIDByUsername service
-		targetID, err = services.GetUserIDByUsername(database, requestBody.TargetID)
+		targetID, err = services.GetUserIDByUsername(database, targetIDParam)
 		fmt.Printf("Found the users' ID : %d ", targetID)
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Target user not found"})
@@ -290,7 +271,7 @@ func GetFollowers(c *gin.Context) {
 
 	case "page":
 		// Fetch the target ID using the GetStateIDByCode service for pages
-		targetID, err = services.GetStateIDByCode(database, requestBody.TargetID)
+		targetID, err = services.GetStateIDByCode(database, targetIDParam)
 		fmt.Printf("Found the states' ID : %d ", targetID)
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "State not found in Database"})
@@ -298,7 +279,7 @@ func GetFollowers(c *gin.Context) {
 		}
 	}
 
-	followers, err := services.RetrieveFollowers(database, targetID, requestBody.Type)
+	followers, err := services.RetrieveFollowers(database, targetID, targetType)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve followers"})
 		return
@@ -324,19 +305,15 @@ func GetFollowings(c *gin.Context) {
 		return
 	}
 
-	var requestBody struct {
-		UserID string `json:"user_id" binding:"required"`
-	}
+	userIDParam := c.Param("user_id") // Fetching from URL param
 
-	if err := c.ShouldBindJSON(&requestBody); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+	if userIDParam == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing user_id in URL"})
 		return
 	}
 
-	var userID uint
-	userID, err = services.GetUserIDByUsername(database, requestBody.UserID)
-
-	fmt.Printf("Found the users' ID : %d ", userID)
+	// Convert username to user ID
+	userID, err := services.GetUserIDByUsername(database, userIDParam)
 
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
