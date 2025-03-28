@@ -84,7 +84,7 @@ const Profile = () => {
 
       const fullImageUrl = `https://roamio-my-profile.s3.us-east-2.amazonaws.com/${imageUrl}`;
       // Call API to update profile pic in backend
-      const response = await fetch("http://localhost:8080/users/update-profile-pic", {
+      const response = await fetch("http://localhost:8080/users/profile-pic", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
