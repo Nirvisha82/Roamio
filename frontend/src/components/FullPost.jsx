@@ -6,6 +6,7 @@ import profilePic1 from "../images/team1.jpg";
 import profilePic2 from "../images/team2.jpg";
 import profilePic3 from "../images/team3.jpg";
 import profilePic4 from "../images/team4.jpg";
+import Slider from "react-slick";
 
 // const posts = [
 //   { id: 1, title: "Post 1", content: "This is the content of Post 1", profilePic: profilePic1, username: "SoniNirvisha" },
@@ -21,7 +22,8 @@ const FullPost = () => {
   const [error, setError] = useState(null);
   const [user, setUser] = useState(null);
   const [profilePicUrl, setProfilePicUrl] = useState("");
-
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [isOwnPost, setIsOwnPost] = useState(false);
 
   const handleFeeds = () => {
     navigate("/feeds");
@@ -56,51 +58,15 @@ const FullPost = () => {
       setNewComment("");
     }
   };
+
   // following related.
-  const [isFollowing, setIsFollowing] = useState(false);
   const toggleFollow = () => {
     setIsFollowing(!isFollowing);
   };
 
-
-
-
   //Post related
   const [post, setPost] = useState(null);
 
-  useEffect(() => {
-    const fetchPost = async () => {
-      try {
-        // Check user session
-        const sessionUser = localStorage.getItem("currentUser");
-        if (!sessionUser) {
-          navigate("/");
-          return;
-        }
-        const parsedUser = JSON.parse(sessionUser);
-        setUser(parsedUser);
-
-        // Fetch post data
-        const response = await fetch(
-          `http://localhost:8080/itineraries/post/${postId}`
-        );
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        setPost(data);
-      } catch (error) {
-        console.error("Error fetching post:", error);
-        setError(error.message);
-      }
-    };
-
-    fetchPost();
-  }, [postId, navigate]);
-
-  const [isOwnPost, setIsOwnPost] = useState(false);
   // Add this useEffect after fetching the post
   useEffect(() => {
     const fetchPost = async () => {
@@ -214,31 +180,22 @@ const FullPost = () => {
     return (
       <div className="text-center py-8">Loading post...</div>)
   }
+  const imagesArray = post?.Images ? post.Images.split(";") : [];
 
   return (
     <div className="relative flex flex-col min-h-screen">
       <nav className="flex justify-between items-center p-5 bg-[#38496a] shadow-md h-16 fixed top-0 w-full z-50">
         <img src={logo} alt="Roamio Logo" className="h-12 w-auto" />
         <div className="flex space-x-6">
-          <button
-            className="text-white hover:text-[#89A8B2] transition"
-            onClick={handleFeeds}
-          >
+          <button className="text-white hover:text-[#89A8B2] transition" onClick={handleFeeds}>
             Feed
           </button>
-          <button
-            className="text-white hover:text-[#89A8B2] transition"
-            onClick={handleMyProfile}
-          >
+          <button className="text-white hover:text-[#89A8B2] transition" onClick={handleMyProfile}>
             My Profile
           </button>
-          <button
-            className="text-white hover:text-[#89A8B2] transition"
-            onClick={handleLogout}
-          >
+          <button className="text-white hover:text-[#89A8B2] transition" onClick={handleLogout}>
             Logout
           </button>
-
         </div>
       </nav>
 
@@ -251,16 +208,11 @@ const FullPost = () => {
           {!isOwnPost && (
             <div className="mt-4">
               {isFollowing ? (
-                <button
-                  onClick={handleUnfollow}
-                  className={"mt-3 px-6 py-2 rounded-lg font-semibold transition bg-red-500 text-white"}
-                >
+                <button onClick={handleUnfollow} className="mt-3 px-6 py-2 rounded-lg font-semibold transition bg-red-500 text-white">
                   Unfollow -
-                </button>) : (
-                <button
-                  onClick={handleFollow}
-                  className="mt-3 px-6 py-2 rounded-lg font-semibold transition bg-[#4A7C88] text-white hover:bg-[#4a7c8876]"
-                >
+                </button>
+              ) : (
+                <button onClick={handleFollow} className="mt-3 px-6 py-2 rounded-lg font-semibold transition bg-[#4A7C88] text-white hover:bg-[#4a7c8876]">
                   Follow +
                 </button>
               )}
@@ -271,12 +223,32 @@ const FullPost = () => {
         {/* Post Content Section */}
         <div className="w-3/4 p-6 bg-[#F1F0E8]">
           <h1 className="text-2xl text-[#4A7C88] font-bold mb-4">{post.Title}</h1>
-          <p className="text-base text-gray-600 mb-4">{post.Description}</p>
-          <p className="text-sm text-gray-600 mb-4"> &nbsp; Number of Days: {post.NumDays} &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; Number of Nights: {post.NumNights}</p>
-          <p className="text-sm text-gray-600 mb-4"> &nbsp; Budget: {post.Budget}</p>
-          <p className="text-sm text-gray-600 mb-4"> &nbsp; Group Size: {post.Size}</p>
-          <p className="text-sm text-gray-600 mb-4"> &nbsp; Highlights: {post.Highlights}</p>
-          <p className="text-sm text-gray-600 mb-4"> &nbsp; Suggestions: {post.Suggestions}</p>
+          <div className="flex">
+            {imagesArray.length > 0 && imagesArray[0] !== "" && (
+              <div className="w-1/2 flex justify-center">
+                <div className="w-4/5 mt-12">
+                  <Slider dots={true} infinite={true} speed={500} slidesToShow={1} slidesToScroll={1}>
+                    {imagesArray.map((image, index) => (
+                      <div key={index}>
+                        <img src={image} alt={`Post Image ${index}`} className="w-full h-auto rounded-lg mb-2" />
+                      </div>
+                    ))}
+                  </Slider>
+                </div>
+              </div>
+            )}
+
+            <div className={`${imagesArray.length > 0 && imagesArray[0] !== "" ? "w-1/2" : "w-full"}`}>
+              <p className="text-base text-gray-600 mb-4">{post.Description}</p>
+              <p className="text-sm text-gray-600 mb-4">Number of Days: {post.NumDays}</p>
+              <p className="text-sm text-gray-600 mb-4">Number of Nights: {post.NumNights}</p>
+              <p className="text-sm text-gray-600 mb-4">Budget: {post.Budget}</p>
+              <p className="text-sm text-gray-600 mb-4">Group Size: {post.Size}</p>
+              <p className="text-sm text-gray-600 mb-4">Highlights: {post.Highlights}</p>
+              <p className="text-sm text-gray-600 mb-4">Suggestions: {post.Suggestions}</p>
+            </div>
+
+          </div>
 
           {/* Comments Section */}
           <div className="mt-6">
@@ -291,16 +263,8 @@ const FullPost = () => {
 
             {/* Add Comment Section */}
             <div className="mt-4">
-              <textarea
-                className="w-full p-2 border rounded-lg"
-                placeholder="Write a comment..."
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-              ></textarea>
-              <button
-                onClick={addComment}
-                className="mt-2 px-6 py-2 bg-[#4A7C88] text-white font-semibold rounded-lg shadow-md hover:bg-[#38496a] transition"
-              >
+              <textarea className="w-full p-2 border rounded-lg" placeholder="Write a comment..." value={newComment} onChange={(e) => setNewComment(e.target.value)}></textarea>
+              <button onClick={addComment} className="mt-2 px-6 py-2 bg-[#4A7C88] text-white font-semibold rounded-lg shadow-md hover:bg-[#38496a] transition">
                 Add Comment
               </button>
             </div>
@@ -308,7 +272,6 @@ const FullPost = () => {
         </div>
       </div>
     </div>
-
   );
 };
 

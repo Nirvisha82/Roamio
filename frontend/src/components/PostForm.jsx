@@ -65,7 +65,8 @@ const PostForm = () => {
     const imageUrlsString = uploadedImageUrls.join('; ');
 
     // Log image URLs string to the console
-    console.log("Uploaded Image URLs (semicolon separated):", imageUrlsString);
+    //console.log("Uploaded Image URLs (semicolon separated):", imageUrlsString);
+    
     return imageUrlsString; // Return the semicolon-separated string
   };
 
