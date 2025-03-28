@@ -2,9 +2,11 @@ package handlers
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"roamio/backend/api"
+	"roamio/backend/api/services"
 	_ "roamio/backend/docs"
 	"roamio/backend/models"
 
@@ -59,24 +61,50 @@ func CreateItinerary(c *gin.Context) {
 	if err != nil {
 		log.Fatal("failed to connect to Database")
 	}
-	var itinerary models.Itinerary
-	if err := c.ShouldBindJSON(&itinerary); err != nil {
+	var request models.ItineraryRequest
+	// Bind the incoming JSON request body to the request struct
+	if err := c.ShouldBindJSON(&request); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input data"})
 		return
 	}
 
-	if itinerary.Title == "" || itinerary.UserID == 0 || itinerary.StateId == 0 || itinerary.Size == 0 || itinerary.Budget == "" {
+	// Validate required fields
+	if request.Title == "" || request.UserID == 0 || request.StateCode == "" || request.Size == 0 || request.Budget == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing required fields"})
 		return
 	}
 
-	if err := database.Create(&itinerary).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
+	// Look up the state ID using the state code sent by the frontend
+	var state models.States
+	err = database.Where("code = ?", request.StateCode).First(&state).Error
+	if err != nil || state.ID == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "State not found"})
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"message": "Itinerary created successfully"})
+	// Now that we have the state ID, create the itinerary with that ID
+	itinerary := models.Itinerary{
+		UserID:      request.UserID,
+		StateId:     state.ID, // Set the state ID based on the state code
+		Title:       request.Title,
+		Description: request.Description,
+		NumDays:     request.NumDays,
+		NumNights:   request.NumNights,
+		Size:        request.Size,
+		Budget:      request.Budget,
+		Highlights:  request.Highlights,
+		Suggestions: request.Suggestions,
+		Images:      request.Images,
+	}
 
+	// Create the itinerary record in the database
+	if err := database.Create(&itinerary).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create itinerary"})
+		return
+	}
+
+	// Send success response
+	c.JSON(http.StatusCreated, gin.H{"message": "Itinerary created successfully"})
 }
 
 // @Summary Get itineraries by user ID
@@ -119,7 +147,15 @@ func GetItineraryByStateId(c *gin.Context) {
 		log.Fatal("failed to connect to Database")
 	}
 
-	stateID := c.Param("stateID")
+	statecode := c.Param("statecode")
+
+	stateID, err := services.GetStateIDByCode(database, statecode)
+	fmt.Printf("Found the states' ID : %d ", stateID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "State not found in Database"})
+		return
+	}
+
 	var itineraries []models.Itinerary
 
 	if err := database.Where("stateID = ?", stateID).Find(&itineraries).Error; err != nil {
