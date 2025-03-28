@@ -34,7 +34,7 @@ func DatabaseConnection() (*gorm.DB, error) {
 	// Automatically migrate the schema for the User model
 	err = database.AutoMigrate(&models.User{},
 		&models.Itinerary{},
-		&models.Page{},
+		&models.States{},
 		&models.Follows{},
 	)
 	if err != nil {
