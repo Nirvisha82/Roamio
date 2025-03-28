@@ -58,5 +58,8 @@ func main() {
 	router.POST("/users/unfollow", handlers.Unfollow)
 	router.POST("/users/follow/check", handlers.IsFollowing)
 
+	router.POST("/comments", handlers.CreateComment)
+	router.GET("/comments", handlers.GetAllComments)
+
 	router.Run(":8080")
 }

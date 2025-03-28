@@ -35,3 +35,23 @@ func CreateComment(c *gin.Context) {
 	}
 	c.JSON(http.StatusCreated, gin.H{"message": "Comment created successfully"})
 }
+
+func GetAllComments(c *gin.Context) {
+	database, err := api.DatabaseConnection()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Database connection failed",
+		})
+		return
+	}
+
+	var comments []models.Comments
+	if err := database.Find(&comments).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "Failed to get list of all comments",
+			"details": err.Error(),
+		})
+		return
+	}
+	c.JSON(http.StatusCreated, gin.H{"comments": comments})
+}
