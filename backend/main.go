@@ -43,22 +43,26 @@ func main() {
 	}))
 	url := ginSwagger.URL("http://localhost:8080/swagger/doc.json")
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, url))
-	router.GET("/users", handlers.GetAllUsers)
+
 	router.GET("/itineraries", handlers.GetAllItinerary)
 	router.POST("/itineraries", handlers.CreateItinerary)
 	router.GET("/itineraries/user/:userID", handlers.GetItineraryByUserId)
 	router.GET("/itineraries/state/:stateID", handlers.GetItineraryByStateId)
 	router.GET("/itineraries/post/:postID", handlers.GetItineraryByPostId)
 
+	// User related
+	router.GET("/users", handlers.GetAllUsers)
 	router.POST("/users/register", handlers.CreateUser)
 	router.POST("/users/login", handlers.Login)
 	router.POST("/users/follow", handlers.CreateFollow)
-	router.GET("/users/followers", handlers.GetFollowers)
-	router.GET("/users/followings", handlers.GetFollowings)
+	router.GET("/users/followers/:type/:target_id", handlers.GetFollowers)
+	router.GET("/users/followings/:user_id", handlers.GetFollowings)
 	router.POST("/users/unfollow", handlers.Unfollow)
 	router.POST("/users/follow/check", handlers.IsFollowing)
 	router.POST("/users/profile-pic", handlers.UpdateProfilePic)
 	router.GET("/users/:username/profile-pic", handlers.GetProfilePic)
 
+	// Feed related
+	router.GET("/feed/:user_name", handlers.GetItineraryFeed)
 	router.Run(":8080")
 }
