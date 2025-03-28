@@ -4,7 +4,17 @@ import { motion } from "framer-motion";
 import parallaximage from "../images/Parallax_Image.jpg";
 import logo from "../images/logo.png";
 import { useParams, useNavigate } from "react-router-dom";
+import AWS from "aws-sdk";
 
+const awsAccessKey = process.env.REACT_APP_AWS_ACCESS_KEY;
+const awsSecretKey = process.env.REACT_APP_AWS_SECRET_KEY;
+
+AWS.config.update({
+  accessKeyId: awsAccessKey,
+  secretAccessKey: awsSecretKey,
+  region: "us-east-2",
+});
+const s3 = new AWS.S3();
 
 const PostForm = () => {
   const [user, setUser] = useState(null);
@@ -26,6 +36,29 @@ const PostForm = () => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, [navigate]); // Added navigate to dependencies
+
+  // Handle file upload
+  const handleFileChange = (e) => {
+    const files = Array.from(e.target.files);
+    setFormData((prev) => ({ ...prev, images: files }));
+  };
+
+  // Upload images to S3 and get URLs
+  const uploadImagesToS3 = async () => {
+    const uploadedImageUrls = await Promise.all(
+      formData.images.map(async (file) => {
+        const params = {
+          Bucket: "roamio-my-profile",
+          Key: `uploads-${user.Username}-${Date.now()}-${file.name}`,
+          Body: file,
+          ContentType: file.type,
+        };
+        const uploadResult = await s3.upload(params).promise();
+        return uploadResult.Location; // URL of uploaded file
+      })
+    );
+    return uploadedImageUrls;
+  };
 
   const handleFeeds = () => {
     navigate("/feeds");
@@ -78,6 +111,10 @@ const PostForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!user?.ID) {
+      alert("User not logged in");
+      return;
+    }
 
     if (!user?.ID) {
       alert('User not logged in');
@@ -86,6 +123,7 @@ const PostForm = () => {
     const formattedBudget = `$${formData.budget}`;
 
     try {
+      const imageUrls = await uploadImagesToS3();
       const response = await fetch('http://localhost:8080/itineraries', {
         method: 'POST',
         headers: {
@@ -102,7 +140,7 @@ const PostForm = () => {
           Budget: formattedBudget,
           Highlights: formData.highlights,
           Suggestions: formData.suggestions,
-          Images: images_url
+          Images: imageUrls,
         })
       });
 
@@ -350,9 +388,11 @@ const PostForm = () => {
               </label>
             </div>
 
+             {/* Image Upload */}
             <input
               type="file"
               multiple
+              onChange={handleFileChange}
               className="w-full p-3 border rounded-lg shadow-sm bg-white"
             />
 
