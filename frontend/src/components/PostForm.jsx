@@ -66,7 +66,7 @@ const PostForm = () => {
 
     // Log image URLs string to the console
     //console.log("Uploaded Image URLs (semicolon separated):", imageUrlsString);
-    
+
     return imageUrlsString; // Return the semicolon-separated string
   };
 
@@ -116,8 +116,7 @@ const PostForm = () => {
     images: ''
   });
 
-  // Hardcoded state ID as per requirements
-  const stateID = 1;
+  const states = State.getStatesOfCountry("US").map((s) => ({ value: s.isoCode, label: `${s.name} (${s.isoCode})` }));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -141,7 +140,7 @@ const PostForm = () => {
         },
         body: JSON.stringify({
           UserID: user.ID,
-          StateId: stateID,
+          StateCode: selectedState?.value,
           Title: formData.title,
           Description: formData.description,
           NumDays: Number(formData.numdays),
@@ -153,12 +152,13 @@ const PostForm = () => {
           Images: imageUrls,
         })
       });
+      
+      const data = await response.json();
 
       if (!response.ok) {
-        throw new Error('Failed to create itinerary:', data);
+        throw new Error(`Failed to create itinerary: ${data.message || "Unknown error"}`);
       }
 
-      const data = await response.json();
       alert('Itinerary created successfully!');
       navigate('/feeds');
     } catch (error) {
@@ -173,8 +173,6 @@ const PostForm = () => {
       [e.target.name]: e.target.value
     });
   };
-
-  const states = State.getStatesOfCountry("US").map((s) => ({ value: s.isoCode, label: `${s.name} (${s.isoCode})` }));
 
   return (
     <>
