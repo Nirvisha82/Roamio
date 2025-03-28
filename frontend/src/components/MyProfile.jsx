@@ -5,6 +5,8 @@ import logo from "../images/logo.png";
 import parallaximage from "../images/Parallax_Image.jpg";
 import AWS from "aws-sdk";
 
+require('dotenv').config();
+
 const awsAccessKey = process.env.REACT_APP_AWS_ACCESS_KEY;
 const awsSecretKey = process.env.REACT_APP_AWS_SECRET_KEY;
 

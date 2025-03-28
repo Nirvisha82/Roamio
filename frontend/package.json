@@ -6,6 +6,7 @@
     "aws-sdk": "^2.1692.0",
     "country-state-city": "^3.2.1",
     "cra-template": "1.2.0",
+    "dotenv": "^16.4.7",
     "framer-motion": "^12.4.1",
     "frontend": "file:",
     "react": "^19.0.0",
