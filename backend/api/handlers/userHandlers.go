@@ -156,8 +156,8 @@ func CreateFollow(c *gin.Context) {
 		return
 	}
 	var followReq struct {
-		FollowerID uint   `json:"follower_id" binding:"required"`
-		TargetID   uint   `json:"target_id" binding:"required"`
+		FollowerID string `json:"follower_id" binding:"required"`
+		TargetID   string `json:"target_id" binding:"required"`
 		Type       string `json:"type" binding:"required,oneof=user page"`
 	}
 
@@ -172,40 +172,38 @@ func CreateFollow(c *gin.Context) {
 		return
 	}
 
-	// Fix for handling both states and users-  migrate all to string as targetID and then fetch prim key from respective tables.
-	// if followReq.Type == "page" {
-	// 	var err error
+	var followerID uint
+	var targetID uint
 
-	// 	followReq.TargetID, err = services.GetStateIDByCode(database, followReq.TargetID)
-	// 	if err != nil {
-	// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "State not found in Database"})
-	// 	}
-	// }
-
-	// Check if target exists
-	var exists bool
-	switch followReq.Type {
-	case "user":
-		exists = database.Where("id = ?", followReq.TargetID).First(&models.User{}).Error == nil
-	case "page":
-		exists = database.Where("id = ?", followReq.TargetID).First(&models.States{}).Error == nil
-	}
-
-	if !exists {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Target not found"})
-		return
-	}
-
-	user_exists := database.Where("id = ?", followReq.FollowerID).First(&models.User{}).Error == nil
-
-	if !user_exists {
+	followerID, err = services.GetUserIDByUsername(database, followReq.FollowerID)
+	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 		return
 	}
 
-	// Check iif the follow relationship already exists
+	switch followReq.Type {
+	case "user":
+		// Fetch the target ID using the GetUserIDByUsername service
+		targetID, err = services.GetUserIDByUsername(database, followReq.TargetID)
+		fmt.Printf("Found the users' ID : %d ", targetID)
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Target user not found"})
+			return
+		}
+
+	case "page":
+		// Fetch the target ID using the GetStateIDByCode service for pages
+		targetID, err = services.GetStateIDByCode(database, followReq.TargetID)
+		fmt.Printf("Found the states' ID : %d ", targetID)
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "State not found in Database"})
+			return
+		}
+	}
+
+	// Check if the follow relationship already exists
 	var existingFollow models.Follows
-	if err := database.Where("follower_id = ? AND target_id = ? AND type = ?", followReq.FollowerID, followReq.TargetID, followReq.Type).
+	if err := database.Where("follower_id = ? AND target_id = ? AND type = ?", followerID, targetID, followReq.Type).
 		First(&existingFollow).Error; err == nil {
 		// Follow relationship already exists
 		c.JSON(http.StatusConflict, gin.H{"error": "Already following"})
@@ -218,8 +216,8 @@ func CreateFollow(c *gin.Context) {
 
 	// Create new follow relationship
 	follow := models.Follows{
-		FollowerID: followReq.FollowerID,
-		TargetID:   followReq.TargetID,
+		FollowerID: followerID,
+		TargetID:   targetID,
 		Type:       followReq.Type,
 	}
 
@@ -250,7 +248,7 @@ func GetFollowers(c *gin.Context) {
 	}
 
 	var requestBody struct {
-		TargetID uint   `json:"target_id" binding:"required"`
+		TargetID string `json:"target_id" binding:"required"`
 		Type     string `json:"type" binding:"required"`
 	}
 	// Bind JSON body to the struct
@@ -265,20 +263,42 @@ func GetFollowers(c *gin.Context) {
 		return
 	}
 
-	var exists bool
+	// var exists bool
+	// switch requestBody.Type {
+	// case "user":
+	// 	exists = database.Where("id = ?", requestBody.TargetID).First(&models.User{}).Error == nil
+	// case "page":
+	// 	exists = database.Where("id = ?", requestBody.TargetID).First(&models.States{}).Error == nil
+	// }
+
+	// if !exists {
+	// 	c.JSON(http.StatusNotFound, gin.H{"error": "Target not found"})
+	// 	return
+	// }
+
+	var targetID uint
+
 	switch requestBody.Type {
 	case "user":
-		exists = database.Where("id = ?", requestBody.TargetID).First(&models.User{}).Error == nil
+		// Fetch the target ID using the GetUserIDByUsername service
+		targetID, err = services.GetUserIDByUsername(database, requestBody.TargetID)
+		fmt.Printf("Found the users' ID : %d ", targetID)
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Target user not found"})
+			return
+		}
+
 	case "page":
-		exists = database.Where("id = ?", requestBody.TargetID).First(&models.States{}).Error == nil
+		// Fetch the target ID using the GetStateIDByCode service for pages
+		targetID, err = services.GetStateIDByCode(database, requestBody.TargetID)
+		fmt.Printf("Found the states' ID : %d ", targetID)
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "State not found in Database"})
+			return
+		}
 	}
 
-	if !exists {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Target not found"})
-		return
-	}
-
-	followers, err := services.RetrieveFollowers(database, requestBody.TargetID, requestBody.Type)
+	followers, err := services.RetrieveFollowers(database, targetID, requestBody.Type)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve followers"})
 		return
@@ -305,7 +325,7 @@ func GetFollowings(c *gin.Context) {
 	}
 
 	var requestBody struct {
-		UserID uint `json:"user_id" binding:"required"`
+		UserID string `json:"user_id" binding:"required"`
 	}
 
 	if err := c.ShouldBindJSON(&requestBody); err != nil {
@@ -313,14 +333,17 @@ func GetFollowings(c *gin.Context) {
 		return
 	}
 
-	user_exists := database.Where("id = ?", requestBody.UserID).First(&models.User{}).Error == nil
+	var userID uint
+	userID, err = services.GetUserIDByUsername(database, requestBody.UserID)
 
-	if !user_exists {
+	fmt.Printf("Found the users' ID : %d ", userID)
+
+	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 		return
 	}
 
-	followings, err := services.RetrieveFollowings(database, requestBody.UserID)
+	followings, err := services.RetrieveFollowings(database, userID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve followings"})
 		return
@@ -348,8 +371,8 @@ func Unfollow(c *gin.Context) {
 	}
 
 	var unfollowReq struct {
-		FollowerID uint   `json:"follower_id" binding:"required"`
-		TargetID   uint   `json:"target_id" binding:"required"`
+		FollowerID string `json:"follower_id" binding:"required"`
+		TargetID   string `json:"target_id" binding:"required"`
 		Type       string `json:"type" binding:"required,oneof=user page"`
 	}
 
@@ -358,8 +381,37 @@ func Unfollow(c *gin.Context) {
 		return
 	}
 
+	var unfollowerID uint
+	var targetID uint
+
+	unfollowerID, err = services.GetUserIDByUsername(database, unfollowReq.FollowerID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+
+	switch unfollowReq.Type {
+	case "user":
+		// Fetch the target ID using the GetUserIDByUsername service
+		targetID, err = services.GetUserIDByUsername(database, unfollowReq.TargetID)
+		fmt.Printf("Found the users' ID : %d ", targetID)
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Target user not found"})
+			return
+		}
+
+	case "page":
+		// Fetch the target ID using the GetStateIDByCode service for pages
+		targetID, err = services.GetStateIDByCode(database, unfollowReq.TargetID)
+		fmt.Printf("Found the states' ID : %d ", targetID)
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "State not found in Database"})
+			return
+		}
+	}
+
 	// Delete the follow relationship
-	result := database.Where("follower_id = ? AND target_id = ? AND type = ?", unfollowReq.FollowerID, unfollowReq.TargetID, unfollowReq.Type).
+	result := database.Where("follower_id = ? AND target_id = ? AND type = ?", unfollowerID, targetID, unfollowReq.Type).
 		Delete(&models.Follows{})
 
 	if result.Error != nil {
@@ -393,8 +445,8 @@ func IsFollowing(c *gin.Context) {
 	}
 
 	var requestBody struct {
-		FollowerID uint   `json:"follower_id" binding:"required"`
-		TargetID   uint   `json:"target_id" binding:"required"`
+		FollowerID string `json:"follower_id" binding:"required"`
+		TargetID   string `json:"target_id" binding:"required"`
 		Type       string `json:"type" binding:"required,oneof=user page"`
 	}
 
@@ -403,10 +455,39 @@ func IsFollowing(c *gin.Context) {
 		return
 	}
 
+	var followerID uint
+	var targetID uint
+
+	followerID, err = services.GetUserIDByUsername(database, requestBody.FollowerID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+
+	switch requestBody.Type {
+	case "user":
+		// Fetch the target ID using the GetUserIDByUsername service
+		targetID, err = services.GetUserIDByUsername(database, requestBody.TargetID)
+		fmt.Printf("Found the users' ID : %d ", targetID)
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Target user not found"})
+			return
+		}
+
+	case "page":
+		// Fetch the target ID using the GetStateIDByCode service for pages
+		targetID, err = services.GetStateIDByCode(database, requestBody.TargetID)
+		fmt.Printf("Found the states' ID : %d ", targetID)
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "State not found in Database"})
+			return
+		}
+	}
+
 	var follow models.Follows
 	err = database.Where("follower_id = ? AND target_id = ? AND type = ?",
-		requestBody.FollowerID,
-		requestBody.TargetID,
+		followerID,
+		targetID,
 		requestBody.Type).
 		First(&follow).Error
 
