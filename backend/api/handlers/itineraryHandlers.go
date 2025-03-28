@@ -65,7 +65,7 @@ func CreateItinerary(c *gin.Context) {
 		return
 	}
 
-	if itinerary.Title == "" || itinerary.UserID == 0 || itinerary.StateId == 0 || itinerary.NumDays == 0 || itinerary.NumNights == 0 || itinerary.Size == 0 || itinerary.Budget == "" {
+	if itinerary.Title == "" || itinerary.UserID == 0 || itinerary.StateId == 0 || itinerary.Size == 0 || itinerary.Budget == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing required fields"})
 		return
 	}
