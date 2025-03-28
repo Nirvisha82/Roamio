@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "aws-sdk": "^2.1692.0",
     "country-state-city": "^3.2.1",
     "cra-template": "1.2.0",
     "framer-motion": "^12.4.1",
