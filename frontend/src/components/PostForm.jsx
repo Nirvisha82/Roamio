@@ -1,5 +1,5 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
-import React, { useState, useEffect  } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import parallaximage from "../images/Parallax_Image.jpg";
 import logo from "../images/logo.png";
@@ -9,28 +9,28 @@ import { useParams, useNavigate } from "react-router-dom";
 const PostForm = () => {
   const [user, setUser] = useState(null);
   const [isScrolled, setIsScrolled] = useState(false);
- 
+
   const navigate = useNavigate();
   useEffect(() => {
-      const storedUser = localStorage.getItem("currentUser");
-      console.log('Session check:', storedUser);
-  
-      if (storedUser) {
-        const parsedUser = JSON.parse(storedUser);
-        setUser(parsedUser);
-      } else {
-        navigate("/");
-      }
-  
-      const handleScroll = () => setIsScrolled(window.scrollY > 0);
-      window.addEventListener("scroll", handleScroll);
-      return () => window.removeEventListener("scroll", handleScroll);
-    }, [navigate]); // Added navigate to dependencies
+    const storedUser = localStorage.getItem("currentUser");
+    console.log('Session check:', storedUser);
+
+    if (storedUser) {
+      const parsedUser = JSON.parse(storedUser);
+      setUser(parsedUser);
+    } else {
+      navigate("/");
+    }
+
+    const handleScroll = () => setIsScrolled(window.scrollY > 0);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [navigate]); // Added navigate to dependencies
 
   const handleFeeds = () => {
-    navigate("/feeds"); 
+    navigate("/feeds");
   };
-  
+
   const handleMyProfile = () => {
     if (user?.Username) {
       navigate(`/myprofile/${user.Username}`);
@@ -57,31 +57,33 @@ const PostForm = () => {
     if (value === "" || Number(value) >= 0) {
       setNights(value);
     }
-  
+
   };
 
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    numdays: 0,
-    numnights: 0,
-    size: 1,
+    numdays: null,
+    numnights: null,
+    size: null,
     budget: '',
     highlights: '',
     suggestions: '',
     images: ''
   });
+
   // Hardcoded state ID as per requirements
   const stateID = 1;
-  const images_url="WWW.dummy.com"
+  const images_url = "WWW.dummy.com"
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!user?.ID) {
       alert('User not logged in');
       return;
     }
+    const formattedBudget = `$${formData.budget}`;
 
     try {
       const response = await fetch('http://localhost:8080/itineraries', {
@@ -97,7 +99,7 @@ const PostForm = () => {
           NumDays: Number(formData.numdays),
           NumNights: Number(formData.numnights),
           Size: Number(formData.size),
-          Budget: formData.budget,
+          Budget: formattedBudget,
           Highlights: formData.highlights,
           Suggestions: formData.suggestions,
           Images: images_url
@@ -124,12 +126,9 @@ const PostForm = () => {
     });
   };
 
-  
-
-
   return (
-  <>
- 
+    <>
+
       {/* Navbar with Motion Animation */}
       <motion.nav
         initial={{ x: "100%" }}
@@ -140,7 +139,7 @@ const PostForm = () => {
       >
         <img src={logo} alt="Roamio Logo" className="h-12 w-auto" />
         <div className="flex space-x-6">
-        <button
+          <button
             className="text-white hover:text-[#89A8B2] transition"
             onClick={handleFeeds}
           >
@@ -177,95 +176,195 @@ const PostForm = () => {
 
           <form className="space-y-6" onSubmit={handleSubmit}>
             {/* Title */}
-            <input type="text"
-            name="title"
-            value={formData.title}
-            onChange={handleInputChange}
-            placeholder="Itinerary Title" 
-            className="w-full p-3 border rounded-lg shadow-sm"
-            required 
-            />
-
-            <textarea 
-            name="description"
-            value={formData.description}
-            onChange={handleInputChange}
-            placeholder="Description"
-            className="w-full p-3 border rounded-lg shadow-sm"
-            required
-            />
-
-            <div className="flex space-x-4">
-              <input 
-              type="number" 
-              name="numdays"
-              value={formData.numdays}
-              onChange={handleInputChange}
-              min="1"
-              placeholder="Number of Days" 
-              className="w-1/2 p-3 border rounded-lg shadow-sm"
-              required
+            <div className="relative">
+              <input
+                type="text"
+                name="title"
+                value={formData.title}
+                onChange={handleInputChange}
+                id="title"
+                placeholder=" "
+                className="w-full p-3 border rounded-lg shadow-sm peer focus:outline-none focus:ring-2 focus:ring-[#38496a]"
+                required
               />
-
-              <input 
-              type="number" 
-              name="numnights"
-              value={formData.numnights}
-              onChange={handleInputChange}
-              min="0" 
-              placeholder="Number of Nights" 
-              className="w-1/2 p-3 border rounded-lg shadow-sm" 
-              required
-              />
+              <label
+                htmlFor="title"
+                className="absolute left-3 top-3 bg-white px-2 rounded-md text-gray-500 text-sm transition-all duration-200
+                  peer-focus:top-[-10px] peer-focus:text-sm peer-focus:text-gray-500
+                  peer-[&:not(:placeholder-shown)]:top-[-10px] peer-[&:not(:placeholder-shown)]:text-sm"
+              >
+                Itinerary Title
+              </label>
             </div>
 
-            <input 
-            type="number"
-            name="size"
-            value={formData.size}
-            onChange={handleInputChange}
-            min="1"
-            placeholder="Group Size" 
-            className="w-full p-3 border rounded-lg shadow-sm" 
-            required
+            {/* Description */}
+            <div className="relative">
+              <textarea
+                name="description"
+                value={formData.description}
+                onChange={handleInputChange}
+                id="description"
+                placeholder=" "
+                className="w-full p-3 border rounded-lg shadow-sm peer focus:outline-none focus:ring-2 focus:ring-[#38496a]"
+                required
+              />
+              <label
+                htmlFor="description"
+                className="absolute left-3 top-3 bg-white px-2 rounded-md text-gray-500 text-sm transition-all duration-200
+                  peer-focus:top-[-10px] peer-focus:text-sm peer-focus:text-gray-500
+                  peer-[&:not(:placeholder-shown)]:top-[-10px] peer-[&:not(:placeholder-shown)]:text-sm"
+              >
+                Description
+              </label>
+            </div>
+
+            <div className="flex space-x-4">
+              <div className="relative w-1/2">
+                <input
+                  type="number"
+                  name="numdays"
+                  value={formData.numdays}
+                  onChange={handleInputChange}
+                  id="numdays"
+                  placeholder=" "
+                  min="1"
+                  className="w-full p-3 border rounded-lg shadow-sm peer focus:outline-none focus:ring-2 focus:ring-[#38496a]"
+                  required
+                />
+                <label
+                  htmlFor="numdays"
+                  className="absolute left-3 top-3 bg-white px-2 rounded-md text-gray-500 text-sm transition-all duration-200
+                    peer-focus:top-[-10px] peer-focus:text-sm peer-focus:text-gray-500
+                    peer-[&:not(:placeholder-shown)]:top-[-10px] peer-[&:not(:placeholder-shown)]:text-sm"
+                >
+                  Number of Days
+                </label>
+              </div>
+
+
+              <div className="relative w-1/2">
+                <input
+                  type="number"
+                  name="numnights"
+                  value={formData.numnights}
+                  onChange={handleInputChange}
+                  id="numnights"
+                  placeholder=" "
+                  min="0"
+                  className="w-full p-3 border rounded-lg shadow-sm peer focus:outline-none focus:ring-2 focus:ring-[#38496a]"
+                  required
+                />
+                <label
+                  htmlFor="numnights"
+                  className="absolute left-3 top-3 bg-white px-2 rounded-md text-gray-500 text-sm transition-all duration-200
+                    peer-focus:top-[-10px] peer-focus:text-sm peer-focus:text-gray-500
+                    peer-[&:not(:placeholder-shown)]:top-[-10px] peer-[&:not(:placeholder-shown)]:text-sm"
+                >
+                  Number of Nights
+                </label>
+              </div>
+            </div>
+
+            {/* Group Size */}
+            <div className="relative">
+              <input
+                type="number"
+                name="size"
+                value={formData.size}
+                onChange={handleInputChange}
+                id="size"
+                placeholder=" "
+                min="1"
+                className="w-full p-3 border rounded-lg shadow-sm peer focus:outline-none focus:ring-2 focus:ring-[#38496a]"
+                required
+              />
+              <label
+                htmlFor="size"
+                className="absolute left-3 top-3 bg-white px-2 rounded-md text-gray-500 text-sm transition-all duration-200
+                  peer-focus:top-[-10px] peer-focus:text-sm peer-focus:text-gray-500
+                  peer-[&:not(:placeholder-shown)]:top-[-10px] peer-[&:not(:placeholder-shown)]:text-sm"
+              >
+                Group Size
+              </label>
+            </div>
+
+            {/* Estimated Budget */}
+            <div className="relative">
+              <input
+                type="number"
+                name="budget"
+                value={formData.budget}
+                onChange={handleInputChange}
+                id="budget"
+                placeholder=" "
+                className="w-full p-3 border rounded-lg shadow-sm peer focus:outline-none focus:ring-2 focus:ring-[#38496a]"
+                required
+              />
+              <label
+                htmlFor="budget"
+                className="absolute left-3 top-3 bg-white px-2 rounded-md text-gray-500 text-sm transition-all duration-200
+                  peer-focus:top-[-10px] peer-focus:text-sm peer-focus:text-gray-500
+                  peer-[&:not(:placeholder-shown)]:top-[-10px] peer-[&:not(:placeholder-shown)]:text-sm"
+              >
+                Estimated Budget ($)
+              </label>
+            </div>
+
+            {/* Trip Highlights */}
+            <div className="relative">
+              <textarea
+                name="highlights"
+                value={formData.highlights}
+                onChange={handleInputChange}
+                id="highlights"
+                placeholder=" "
+                className="w-full p-3 border rounded-lg shadow-sm peer focus:outline-none focus:ring-2 focus:ring-[#38496a]"
+              />
+              <label
+                htmlFor="highlights"
+                className="absolute left-3 top-3 bg-white px-2 rounded-md text-gray-500 text-sm transition-all duration-200
+                  peer-focus:top-[-10px] peer-focus:text-sm peer-focus:text-gray-500
+                  peer-[&:not(:placeholder-shown)]:top-[-10px] peer-[&:not(:placeholder-shown)]:text-sm"
+              >
+                Trip Highlights
+              </label>
+            </div>
+
+            {/* Stay Suggestions */}
+            <div className="relative">
+              <textarea
+                name="suggestions"
+                value={formData.suggestions}
+                onChange={handleInputChange}
+                id="suggestions"
+                placeholder=" "
+                className="w-full p-3 border rounded-lg shadow-sm peer focus:outline-none focus:ring-2 focus:ring-[#38496a]"
+              />
+              <label
+                htmlFor="suggestions"
+                className="absolute left-3 top-3 bg-white px-2 rounded-md text-gray-500 text-sm transition-all duration-200
+                  peer-focus:top-[-10px] peer-focus:text-sm peer-focus:text-gray-500
+                  peer-[&:not(:placeholder-shown)]:top-[-10px] peer-[&:not(:placeholder-shown)]:text-sm"
+              >
+                Stay Suggestions
+              </label>
+            </div>
+
+            <input
+              type="file"
+              multiple
+              className="w-full p-3 border rounded-lg shadow-sm bg-white"
             />
 
-            <input 
-            type="text"
-            name="budget"
-            value={formData.budget}
-            onChange={handleInputChange}
-            placeholder="Estimated Budget" 
-            className="w-full p-3 border rounded-lg shadow-sm" 
-            required
-            />
-
-            <textarea
-            name="highlights"
-            value={formData.highlights}
-            onChange={handleInputChange}
-            placeholder="Trip Highlights (e.g., must-see spots, experiences)" 
-            className="w-full p-3 border rounded-lg shadow-sm" 
-            />
-            
-            <textarea 
-            name="suggestions"
-            value={formData.suggestions}
-            onChange={handleInputChange}
-            placeholder="Stay Suggestions (e.g., hotels, hostels, Airbnbs)" 
-            className="w-full p-3 border rounded-lg shadow-sm" 
-            />
-            
-            <input 
-            type="file" 
-            multiple className="w-full p-3 border rounded-lg shadow-sm bg-white" 
-            />
-
-            <button type="submit" 
-              className="w-full py-3 bg-[#38496a] text-white font-semibold rounded-lg shadow-md hover:bg-[#4A7C88] transition">
+            <button
+              type="submit"
+              className="w-full py-3 bg-[#38496a] text-white font-semibold rounded-lg shadow-md hover:bg-[#4A7C88] transition"
+            >
               Submit
             </button>
           </form>
+
+
         </div>
       </motion.div>
     </>
