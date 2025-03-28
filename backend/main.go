@@ -47,7 +47,7 @@ func main() {
 	router.GET("/itineraries", handlers.GetAllItinerary)
 	router.POST("/itineraries", handlers.CreateItinerary)
 	router.GET("/itineraries/user/:userID", handlers.GetItineraryByUserId)
-	router.GET("/itineraries/state/:stateID", handlers.GetItineraryByStateId)
+	router.GET("/itineraries/state/:statecode", handlers.GetItineraryByStateId)
 	router.GET("/itineraries/post/:postID", handlers.GetItineraryByPostId)
 
 	// User related
