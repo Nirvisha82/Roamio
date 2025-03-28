@@ -67,11 +67,6 @@ func main() {
 	router.GET("/comments/:postID", handlers.GetCommentsByPostId)
 	router.PUT("/comments", handlers.UpdateComment)
 
-	router.POST("/comments", handlers.CreateComment)
-	router.GET("/comments", handlers.GetAllComments)
-	router.GET("/comments/:postID", handlers.GetCommentsByPostId)
-	router.PUT("/comments", handlers.UpdateComment)
-
 	// Feed related
 	router.GET("/feed/:user_name", handlers.GetItineraryFeed)
 	router.Run(":8080")
