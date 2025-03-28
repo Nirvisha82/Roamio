@@ -460,17 +460,10 @@ func GetProfilePic(c *gin.Context) {
 		return
 	}
 
-	var req struct {
-		Username string `json:"username" binding:"required"`
-	}
-
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
-		return
-	}
+	username := c.Param("username") // Get username from URL parameter
 
 	var user models.User
-	if err := database.Select("profile_pic_url").Where("username = ?", req.Username).First(&user).Error; err != nil {
+	if err := database.Select("profile_pic_url").Where("username = ?", username).First(&user).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 		} else {
