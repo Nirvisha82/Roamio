@@ -3,6 +3,17 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import logo from "../images/logo.png";
 import parallaximage from "../images/Parallax_Image.jpg";
+import AWS from "aws-sdk";
+
+const awsAccessKey = process.env.REACT_APP_AWS_ACCESS_KEY;
+const awsSecretKey = process.env.REACT_APP_AWS_SECRET_KEY;
+
+AWS.config.update({
+  accessKeyId: awsAccessKey,
+  secretAccessKey: awsSecretKey,
+  region: "us-east-2",
+});
+const s3 = new AWS.S3();
 
 const Profile = () => {
   const { username } = useParams();
@@ -50,14 +61,34 @@ const Profile = () => {
     fetchData();
   }, [username, navigate]);
 
-  const handleImageUpload = (e) => {
+  const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => setProfileImage(reader.result);
-      reader.readAsDataURL(file);
+      try {
+        const fileName = `${user.Username}-${Date.now()}-${file.name}`;
+        const params = {
+          Bucket: "roamio-my-profile", // Replace with your S3 bucket name
+          Key: fileName,
+          Body: file,
+          ContentType: file.type,
+        };
+  
+        // Upload file to S3
+        const uploadResponse = await s3.upload(params).promise();
+        console.log("File uploaded successfully", uploadResponse);
+  
+        // After successful upload, set the image URL
+        const imageUrl = uploadResponse.Location; // S3 generated URL
+        setProfileImage(imageUrl);
+  
+        // You can save the URL in user data, local storage, or back-end if necessary
+        // For example: localStorage.setItem("profileImage", imageUrl);
+  
+      } catch (error) {
+        console.error("Error uploading image to S3:", error);
+      }
     }
-  };
+  };  
 
   const handleFeeds = () => navigate("/feeds");
   const handleLogout = () => {
