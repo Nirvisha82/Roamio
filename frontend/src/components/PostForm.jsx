@@ -3,6 +3,8 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import parallaximage from "../images/Parallax_Image.jpg";
 import logo from "../images/logo.png";
+import Select from "react-select";
+import { State } from "country-state-city";
 import { useParams, useNavigate } from "react-router-dom";
 import AWS from "aws-sdk";
 
@@ -18,6 +20,7 @@ const s3 = new AWS.S3();
 
 const PostForm = () => {
   const [user, setUser] = useState(null);
+  const [selectedState, setSelectedState] = useState(null);
   const [isScrolled, setIsScrolled] = useState(false);
 
   const navigate = useNavigate();
@@ -107,7 +110,6 @@ const PostForm = () => {
 
   // Hardcoded state ID as per requirements
   const stateID = 1;
-  const images_url = "WWW.dummy.com"
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -163,6 +165,8 @@ const PostForm = () => {
       [e.target.name]: e.target.value
     });
   };
+
+  const states = State.getStatesOfCountry("US").map((s) => ({value: s.isoCode, label: `${s.name} (${s.isoCode})`}));
 
   return (
     <>
@@ -256,6 +260,11 @@ const PostForm = () => {
               </label>
             </div>
 
+            <div className="relative">
+              <Select options={states} value={selectedState} onChange={setSelectedState} placeholder="Select a State" />
+            </div>
+
+            {/* Number of Days */}
             <div className="flex space-x-4">
               <div className="relative w-1/2">
                 <input
@@ -279,7 +288,7 @@ const PostForm = () => {
                 </label>
               </div>
 
-
+              {/* Number of Nights */}
               <div className="relative w-1/2">
                 <input
                   type="number"
@@ -396,6 +405,7 @@ const PostForm = () => {
               className="w-full p-3 border rounded-lg shadow-sm bg-white"
             />
 
+            {/* Submit */}
             <button
               type="submit"
               className="w-full py-3 bg-[#38496a] text-white font-semibold rounded-lg shadow-md hover:bg-[#4A7C88] transition"
