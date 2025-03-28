@@ -109,7 +109,14 @@ func RetrieveFollowings(database *gorm.DB, followerID uint) ([]struct {
 	Name string `json:"name"`
 }, error) {
 	var followings []struct {
-		Type string `json:"type"` // Either "user" or "page"
+		Type string `json:"type"`
+		ID   uint   `json:"id"`
+		Name string `json:"name"`
+	}
+
+	// Temporary slice to store results before appending
+	var userFollowings []struct {
+		Type string `json:"type"`
 		ID   uint   `json:"id"`
 		Name string `json:"name"`
 	}
@@ -119,9 +126,19 @@ func RetrieveFollowings(database *gorm.DB, followerID uint) ([]struct {
 		Select("'user' as type, users.id, users.username as name").
 		Joins("JOIN users ON users.id = follows.target_id").
 		Where("follows.follower_id = ? AND follows.type = 'user'", followerID).
-		Scan(&followings).Error
+		Scan(&userFollowings).Error
 	if err != nil {
 		return nil, err
+	}
+
+	// Append user followings to main slice
+	followings = append(followings, userFollowings...)
+
+	// Temporary slice for pages
+	var pageFollowings []struct {
+		Type string `json:"type"`
+		ID   uint   `json:"id"`
+		Name string `json:"name"`
 	}
 
 	// Query for pages being followed
@@ -129,10 +146,13 @@ func RetrieveFollowings(database *gorm.DB, followerID uint) ([]struct {
 		Select("'page' as type, states.id, states.name").
 		Joins("JOIN states ON states.id = follows.target_id").
 		Where("follows.follower_id = ? AND follows.type = 'page'", followerID).
-		Scan(&followings).Error
+		Scan(&pageFollowings).Error
 	if err != nil {
 		return nil, err
 	}
+
+	// Append page followings to main slice
+	followings = append(followings, pageFollowings...)
 
 	return followings, nil
 }
