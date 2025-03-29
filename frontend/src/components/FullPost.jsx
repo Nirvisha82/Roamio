@@ -29,29 +29,15 @@ const FullPost = () => {
     navigate("/");
   };
 
-  const addComment = () => {
-    if (newComment.trim()) {
-      setComments([...comments, {
-        id: comments.length + 1,
-        text: newComment,
-        replies: [],
-        username: JSON.parse(localStorage.getItem("currentUser")).Username
-      }]);
-      setNewComment("");
-    }
-  };
-
   // following related.
   const toggleFollow = () => {
     setIsFollowing(!isFollowing);
   };
 
   //Post related
-  const [post, setPost] = useState(null);
+
 
   // Add this useEffect after fetching the post
-  useEffect(() => {
-    const fetchPost = async () => {
 
   // Fetch post and comments
   useEffect(() => {
