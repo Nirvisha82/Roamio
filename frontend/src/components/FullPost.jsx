@@ -19,6 +19,8 @@ const FullPost = () => {
   const [newComment, setNewComment] = useState("");
   const [isFollowing, setIsFollowing] = useState(false);
   const [isOwnPost, setIsOwnPost] = useState(false);
+  const [post, setPost] = useState(null);
+
 
   // Navigation handlers
   const handleFeeds = () => navigate("/feeds");
