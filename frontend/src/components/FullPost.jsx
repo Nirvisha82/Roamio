@@ -2,6 +2,11 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import logo from "../images/logo.png";
+import profilePic1 from "../images/team1.jpg";
+import profilePic2 from "../images/team2.jpg";
+import profilePic3 from "../images/team3.jpg";
+import profilePic4 from "../images/team4.jpg";
+import Slider from "react-slick";
 
 const FullPost = () => {
   const { postId } = useParams();
@@ -9,6 +14,7 @@ const FullPost = () => {
   const [error, setError] = useState(null);
   const [user, setUser] = useState(null);
   const [profilePicUrl, setProfilePicUrl] = useState("");
+
   const [post, setPost] = useState(null);
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
@@ -23,10 +29,33 @@ const FullPost = () => {
     navigate("/");
   };
 
+  const addComment = () => {
+    if (newComment.trim()) {
+      setComments([...comments, {
+        id: comments.length + 1,
+        text: newComment,
+        replies: [],
+        username: JSON.parse(localStorage.getItem("currentUser")).Username
+      }]);
+      setNewComment("");
+    }
+  };
+
+  // following related.
+  const toggleFollow = () => {
+    setIsFollowing(!isFollowing);
+  };
+
+  //Post related
+  const [post, setPost] = useState(null);
+
+  // Add this useEffect after fetching the post
+  useEffect(() => {
+    const fetchPost = async () => {
+
   // Fetch post and comments
   useEffect(() => {
     const fetchPostAndComments = async () => {
-      // ... existing fetch logic remains the same ...
       try {
         const sessionUser = localStorage.getItem("currentUser");
         if (!sessionUser) {
@@ -190,20 +219,30 @@ const FullPost = () => {
     }
   };
 
+  if (!post) {
+    return (
+      <div className="text-center py-8">Loading post...</div>)
+  }
+  const imagesArray = post?.Images ? post.Images.split(";") : [];
+      
   useEffect(() => {
     if (post) checkFollowStatus();
   }, [post]);
-
-  if (!post) return <div className="text-center py-8">Loading post...</div>;
 
   return (
     <div className="relative flex flex-col min-h-screen">
       <nav className="flex justify-between items-center p-5 bg-[#38496a] shadow-md h-16 fixed top-0 w-full z-50">
         <img src={logo} alt="Roamio Logo" className="h-12 w-auto" />
         <div className="flex space-x-6">
-          <button className="text-white hover:text-[#89A8B2] transition" onClick={handleFeeds}>Feed</button>
-          <button className="text-white hover:text-[#89A8B2] transition" onClick={handleMyProfile}>My Profile</button>
-          <button className="text-white hover:text-[#89A8B2] transition" onClick={handleLogout}>Logout</button>
+          <button className="text-white hover:text-[#89A8B2] transition" onClick={handleFeeds}>
+            Feed
+          </button>
+          <button className="text-white hover:text-[#89A8B2] transition" onClick={handleMyProfile}>
+            My Profile
+          </button>
+          <button className="text-white hover:text-[#89A8B2] transition" onClick={handleLogout}>
+            Logout
+          </button>
         </div>
       </nav>
 
@@ -215,6 +254,7 @@ const FullPost = () => {
           {!isOwnPost && (
             <div className="mt-4">
               {isFollowing ? (
+
                 <button onClick={handleUnfollow} 
                 className="mt-3 px-6 py-2 rounded-lg font-semibold transition bg-red-500 text-white">
                   Unfollow -
@@ -231,12 +271,32 @@ const FullPost = () => {
 
         <div className="w-3/4 p-6 bg-[#F1F0E8]">
           <h1 className="text-2xl text-[#4A7C88] font-bold mb-4">{post.Title}</h1>
-          <p className="text-base text-gray-600 mb-4">{post.Description}</p>
-          <p className="text-sm text-gray-600 mb-4">Number of Days: {post.NumDays} Number of Nights: {post.NumNights}</p>
-          <p className="text-sm text-gray-600 mb-4">Budget: {post.Budget}</p>
-          <p className="text-sm text-gray-600 mb-4">Group Size: {post.Size}</p>
-          <p className="text-sm text-gray-600 mb-4">Highlights: {post.Highlights}</p>
-          <p className="text-sm text-gray-600 mb-4">Suggestions: {post.Suggestions}</p>
+          <div className="flex">
+            {imagesArray.length > 0 && imagesArray[0] !== "" && (
+              <div className="w-1/2 flex justify-center">
+                <div className="w-4/5 mt-12">
+                  <Slider dots={true} infinite={true} speed={500} slidesToShow={1} slidesToScroll={1}>
+                    {imagesArray.map((image, index) => (
+                      <div key={index}>
+                        <img src={image} alt={`Post Image ${index}`} className="w-full h-auto rounded-lg mb-2" />
+                      </div>
+                    ))}
+                  </Slider>
+                </div>
+              </div>
+            )}
+
+            <div className={`${imagesArray.length > 0 && imagesArray[0] !== "" ? "w-1/2" : "w-full"}`}>
+              <p className="text-base text-gray-600 mb-4">{post.Description}</p>
+              <p className="text-sm text-gray-600 mb-4">Number of Days: {post.NumDays}</p>
+              <p className="text-sm text-gray-600 mb-4">Number of Nights: {post.NumNights}</p>
+              <p className="text-sm text-gray-600 mb-4">Budget: {post.Budget}</p>
+              <p className="text-sm text-gray-600 mb-4">Group Size: {post.Size}</p>
+              <p className="text-sm text-gray-600 mb-4">Highlights: {post.Highlights}</p>
+              <p className="text-sm text-gray-600 mb-4">Suggestions: {post.Suggestions}</p>
+            </div>
+
+          </div>
 
           <div className="mt-6">
             <h2 className="text-xl font-semibold text-[#4A7C88]">Comments</h2>
@@ -249,16 +309,8 @@ const FullPost = () => {
             </div>
 
             <div className="mt-4">
-              <textarea
-                className="w-full p-2 border rounded-lg"
-                placeholder="Write a comment..."
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-              ></textarea>
-              <button
-                onClick={addComment}
-                className="mt-2 px-6 py-2 bg-[#4A7C88] text-white font-semibold rounded-lg shadow-md hover:bg-[#38496a] transition"
-              >
+              <textarea className="w-full p-2 border rounded-lg" placeholder="Write a comment..." value={newComment} onChange={(e) => setNewComment(e.target.value)}></textarea>
+              <button onClick={addComment} className="mt-2 px-6 py-2 bg-[#4A7C88] text-white font-semibold rounded-lg shadow-md hover:bg-[#38496a] transition">
                 Add Comment
               </button>
             </div>
