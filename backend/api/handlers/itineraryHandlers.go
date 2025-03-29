@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"errors"
-	"fmt"
 	"log"
 	"net/http"
 	"roamio/backend/api"
@@ -144,25 +143,54 @@ func GetItineraryByUserId(c *gin.Context) {
 func GetItineraryByStateId(c *gin.Context) {
 	database, err := api.DatabaseConnection()
 	if err != nil {
-		log.Fatal("failed to connect to Database")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database connection failed"})
+		return
 	}
 
 	statecode := c.Param("statecode")
 
+	// First verify the state exists and get its ID
 	stateID, err := services.GetStateIDByCode(database, statecode)
-	fmt.Printf("Found the states' ID : %d ", stateID)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "State not found in Database"})
 		return
 	}
 
+	// Define response structure
+	type ItineraryResponse struct {
+		models.Itinerary
+		Username  string `json:"username"`
+		StateCode string `json:"state_code"`
+	}
+
 	var itineraries []models.Itinerary
 
-	if err := database.Where("stateID = ?", stateID).Find(&itineraries).Error; err != nil {
+	// First get all itineraries for this state
+	if err := database.Where("stateID = ?", stateID).
+		Order("id DESC").
+		Find(&itineraries).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve itineraries"})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"itineraries": itineraries})
+
+	// Process each itinerary to add username and state code
+	var response []ItineraryResponse
+	for _, itinerary := range itineraries {
+		username, err := services.GetUsernameByID(database, itinerary.UserID)
+		if err != nil {
+			username = "Unknown"
+		}
+
+		// Since we already have the state code from the URL, we can use it directly
+		// Alternatively, you could fetch the state details again if needed
+		response = append(response, ItineraryResponse{
+			Itinerary: itinerary,
+			Username:  username,
+			StateCode: statecode, // Using the code from URL parameter
+		})
+	}
+
+	c.JSON(http.StatusOK, gin.H{"itineraries": response})
 }
 
 // @Summary Get itinerary by post ID
