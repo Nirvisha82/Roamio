@@ -27,16 +27,13 @@ const FullPost = () => {
     localStorage.removeItem("currentUser");
     navigate("/");
   };
-
-
+  
   // following related.
   const toggleFollow = () => {
     setIsFollowing(!isFollowing);
   };
 
-  //Post related
-  const [post, setPost] = useState(null);
-
+  // Fetch post and comments
   useEffect(() => {
     const fetchPostAndComments = async () => {
       try {
