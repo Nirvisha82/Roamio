@@ -6,12 +6,12 @@ import (
 	"log"
 	"net/http"
 	"roamio/backend/api"
+	"roamio/backend/api/services"
 	"roamio/backend/models"
 
 	_ "roamio/backend/docs"
 
 	"github.com/gin-gonic/gin"
-	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
@@ -26,87 +26,6 @@ func GetAllUsers(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
 	}
 	c.JSON(http.StatusOK, users)
-}
-
-func GetUserProfile(database *gorm.DB, usernameOrEmail string) (*models.User, error) {
-	var user models.User
-
-	// Query the database for the user by username or email
-	err := database.Select("id, fullname, location, dob, username, email").
-		Where("username = ? OR email = ?", usernameOrEmail, usernameOrEmail).
-		First(&user).Error
-
-	if err != nil {
-		return nil, err
-	}
-
-	return &user, nil
-}
-
-// HashPassword hashes a plain-text password using bcrypt
-func hashPassword(password string) (string, error) {
-	bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	return string(bytes), err
-}
-
-// CheckPasswordHash compares a plain-text password with a hashed password
-func checkPasswordHash(password, hash string) bool {
-	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
-	return err == nil
-}
-
-// Retrieve Followers/following func
-func RetrieveFollowers(database *gorm.DB, targetID uint, followType string) ([]struct {
-	ID       uint
-	Username string
-}, error) {
-	var followers []struct {
-		ID       uint
-		Username string
-	}
-
-	err := database.Model(&models.User{}).
-		Select("users.id, users.username").
-		Joins("JOIN follows ON follows.follower_id = users.id").
-		Where("follows.target_id = ? AND follows.type = ?", targetID, followType).
-		Scan(&followers).Error
-
-	return followers, err
-}
-
-// Retrieve following
-func RetrieveFollowings(database *gorm.DB, followerID uint) ([]struct {
-	Type string `json:"type"` // Either "user" or "page"
-	ID   uint   `json:"id"`
-	Name string `json:"name"`
-}, error) {
-	var followings []struct {
-		Type string `json:"type"` // Either "user" or "page"
-		ID   uint   `json:"id"`
-		Name string `json:"name"`
-	}
-
-	// Query for users being followed
-	err := database.Table("follows").
-		Select("'user' as type, users.id, users.username as name").
-		Joins("JOIN users ON users.id = follows.target_id").
-		Where("follows.follower_id = ? AND follows.type = 'user'", followerID).
-		Scan(&followings).Error
-	if err != nil {
-		return nil, err
-	}
-
-	// Query for pages being followed
-	err = database.Table("follows").
-		Select("'page' as type, pages.id, pages.name").
-		Joins("JOIN pages ON pages.id = follows.target_id").
-		Where("follows.follower_id = ? AND follows.type = 'page'", followerID).
-		Scan(&followings).Error
-	if err != nil {
-		return nil, err
-	}
-
-	return followings, nil
 }
 
 // @Summary Create a new user
@@ -142,7 +61,7 @@ func CreateUser(c *gin.Context) {
 		return
 	}
 	// Before saving user in CreateUser:
-	hashedPassword, err := hashPassword(user.Password)
+	hashedPassword, err := services.HashPassword(user.Password)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
 		return
@@ -199,13 +118,13 @@ func Login(c *gin.Context) {
 	}
 
 	// Verify the password (for simplicity, assuming plain text comparison here)
-	if !checkPasswordHash(loginRequest.Password, user.Password) {
+	if !services.CheckPasswordHash(loginRequest.Password, user.Password) {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid username/email or password"})
 		return
 	}
 
 	// Retrieve user profile (excluding password)
-	userProfile, err := GetUserProfile(database, loginRequest.UsernameOrEmail)
+	userProfile, err := services.GetUserProfile(database, loginRequest.UsernameOrEmail)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve user profile"})
 		return
@@ -236,10 +155,9 @@ func CreateFollow(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database connection failed"})
 		return
 	}
-
 	var followReq struct {
-		FollowerID uint   `json:"follower_id" binding:"required"`
-		TargetID   uint   `json:"target_id" binding:"required"`
+		FollowerID string `json:"follower_id" binding:"required"`
+		TargetID   string `json:"target_id" binding:"required"`
 		Type       string `json:"type" binding:"required,oneof=user page"`
 	}
 
@@ -254,30 +172,38 @@ func CreateFollow(c *gin.Context) {
 		return
 	}
 
-	// Check if target exists
-	var exists bool
-	switch followReq.Type {
-	case "user":
-		exists = database.Where("id = ?", followReq.TargetID).First(&models.User{}).Error == nil
-	case "page":
-		exists = database.Where("id = ?", followReq.TargetID).First(&models.Page{}).Error == nil
-	}
+	var followerID uint
+	var targetID uint
 
-	if !exists {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Target not found"})
-		return
-	}
-
-	user_exists := database.Where("id = ?", followReq.FollowerID).First(&models.User{}).Error == nil
-
-	if !user_exists {
+	followerID, err = services.GetUserIDByUsername(database, followReq.FollowerID)
+	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 		return
 	}
 
-	// Check iif the follow relationship already exists
+	switch followReq.Type {
+	case "user":
+		// Fetch the target ID using the GetUserIDByUsername service
+		targetID, err = services.GetUserIDByUsername(database, followReq.TargetID)
+		fmt.Printf("Found the users' ID : %d ", targetID)
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Target user not found"})
+			return
+		}
+
+	case "page":
+		// Fetch the target ID using the GetStateIDByCode service for pages
+		targetID, err = services.GetStateIDByCode(database, followReq.TargetID)
+		fmt.Printf("Found the states' ID : %d ", targetID)
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "State not found in Database"})
+			return
+		}
+	}
+
+	// Check if the follow relationship already exists
 	var existingFollow models.Follows
-	if err := database.Where("follower_id = ? AND target_id = ? AND type = ?", followReq.FollowerID, followReq.TargetID, followReq.Type).
+	if err := database.Where("follower_id = ? AND target_id = ? AND type = ?", followerID, targetID, followReq.Type).
 		First(&existingFollow).Error; err == nil {
 		// Follow relationship already exists
 		c.JSON(http.StatusConflict, gin.H{"error": "Already following"})
@@ -290,8 +216,8 @@ func CreateFollow(c *gin.Context) {
 
 	// Create new follow relationship
 	follow := models.Follows{
-		FollowerID: followReq.FollowerID,
-		TargetID:   followReq.TargetID,
+		FollowerID: followerID,
+		TargetID:   targetID,
 		Type:       followReq.Type,
 	}
 
@@ -321,36 +247,39 @@ func GetFollowers(c *gin.Context) {
 		return
 	}
 
-	var requestBody struct {
-		TargetID uint   `json:"target_id" binding:"required"`
-		Type     string `json:"type" binding:"required"`
-	}
-	// Bind JSON body to the struct
-	if err := c.ShouldBindJSON(&requestBody); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
-		return
-	}
+	// Get parameters from URL
+	targetIDParam := c.Param("target_id") // Fetch target identifier (username or state code)
+	targetType := c.Param("type")         // Fetch type ("user" or "page")
 
 	// Validate the type field
-	if requestBody.Type != "user" && requestBody.Type != "page" {
+	if targetType != "user" && targetType != "page" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid type. Must be 'user' or 'page'"})
 		return
 	}
 
-	var exists bool
-	switch requestBody.Type {
+	var targetID uint
+
+	switch targetType {
 	case "user":
-		exists = database.Where("id = ?", requestBody.TargetID).First(&models.User{}).Error == nil
+		// Fetch the target ID using the GetUserIDByUsername service
+		targetID, err = services.GetUserIDByUsername(database, targetIDParam)
+		fmt.Printf("Found the users' ID : %d ", targetID)
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Target user not found"})
+			return
+		}
+
 	case "page":
-		exists = database.Where("id = ?", requestBody.TargetID).First(&models.Page{}).Error == nil
+		// Fetch the target ID using the GetStateIDByCode service for pages
+		targetID, err = services.GetStateIDByCode(database, targetIDParam)
+		fmt.Printf("Found the states' ID : %d ", targetID)
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "State not found in Database"})
+			return
+		}
 	}
 
-	if !exists {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Target not found"})
-		return
-	}
-
-	followers, err := RetrieveFollowers(database, requestBody.TargetID, requestBody.Type)
+	followers, err := services.RetrieveFollowers(database, targetID, targetType)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve followers"})
 		return
@@ -376,23 +305,22 @@ func GetFollowings(c *gin.Context) {
 		return
 	}
 
-	var requestBody struct {
-		UserID uint `json:"user_id" binding:"required"`
-	}
+	userIDParam := c.Param("user_id") // Fetching from URL param
 
-	if err := c.ShouldBindJSON(&requestBody); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+	if userIDParam == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing user_id in URL"})
 		return
 	}
 
-	user_exists := database.Where("id = ?", requestBody.UserID).First(&models.User{}).Error == nil
+	// Convert username to user ID
+	userID, err := services.GetUserIDByUsername(database, userIDParam)
 
-	if !user_exists {
+	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 		return
 	}
 
-	followings, err := RetrieveFollowings(database, requestBody.UserID)
+	followings, err := services.RetrieveFollowings(database, userID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve followings"})
 		return
@@ -420,8 +348,8 @@ func Unfollow(c *gin.Context) {
 	}
 
 	var unfollowReq struct {
-		FollowerID uint   `json:"follower_id" binding:"required"`
-		TargetID   uint   `json:"target_id" binding:"required"`
+		FollowerID string `json:"follower_id" binding:"required"`
+		TargetID   string `json:"target_id" binding:"required"`
 		Type       string `json:"type" binding:"required,oneof=user page"`
 	}
 
@@ -430,8 +358,37 @@ func Unfollow(c *gin.Context) {
 		return
 	}
 
+	var unfollowerID uint
+	var targetID uint
+
+	unfollowerID, err = services.GetUserIDByUsername(database, unfollowReq.FollowerID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+
+	switch unfollowReq.Type {
+	case "user":
+		// Fetch the target ID using the GetUserIDByUsername service
+		targetID, err = services.GetUserIDByUsername(database, unfollowReq.TargetID)
+		fmt.Printf("Found the users' ID : %d ", targetID)
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Target user not found"})
+			return
+		}
+
+	case "page":
+		// Fetch the target ID using the GetStateIDByCode service for pages
+		targetID, err = services.GetStateIDByCode(database, unfollowReq.TargetID)
+		fmt.Printf("Found the states' ID : %d ", targetID)
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "State not found in Database"})
+			return
+		}
+	}
+
 	// Delete the follow relationship
-	result := database.Where("follower_id = ? AND target_id = ? AND type = ?", unfollowReq.FollowerID, unfollowReq.TargetID, unfollowReq.Type).
+	result := database.Where("follower_id = ? AND target_id = ? AND type = ?", unfollowerID, targetID, unfollowReq.Type).
 		Delete(&models.Follows{})
 
 	if result.Error != nil {
@@ -465,8 +422,8 @@ func IsFollowing(c *gin.Context) {
 	}
 
 	var requestBody struct {
-		FollowerID uint   `json:"follower_id" binding:"required"`
-		TargetID   uint   `json:"target_id" binding:"required"`
+		FollowerID string `json:"follower_id" binding:"required"`
+		TargetID   string `json:"target_id" binding:"required"`
 		Type       string `json:"type" binding:"required,oneof=user page"`
 	}
 
@@ -475,10 +432,39 @@ func IsFollowing(c *gin.Context) {
 		return
 	}
 
+	var followerID uint
+	var targetID uint
+
+	followerID, err = services.GetUserIDByUsername(database, requestBody.FollowerID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+
+	switch requestBody.Type {
+	case "user":
+		// Fetch the target ID using the GetUserIDByUsername service
+		targetID, err = services.GetUserIDByUsername(database, requestBody.TargetID)
+		fmt.Printf("Found the users' ID : %d ", targetID)
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Target user not found"})
+			return
+		}
+
+	case "page":
+		// Fetch the target ID using the GetStateIDByCode service for pages
+		targetID, err = services.GetStateIDByCode(database, requestBody.TargetID)
+		fmt.Printf("Found the states' ID : %d ", targetID)
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "State not found in Database"})
+			return
+		}
+	}
+
 	var follow models.Follows
 	err = database.Where("follower_id = ? AND target_id = ? AND type = ?",
-		requestBody.FollowerID,
-		requestBody.TargetID,
+		followerID,
+		targetID,
 		requestBody.Type).
 		First(&follow).Error
 
@@ -491,4 +477,58 @@ func IsFollowing(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"isFollowing": true})
+}
+
+func UpdateProfilePic(c *gin.Context) {
+	database, err := api.DatabaseConnection()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database connection failed"})
+		return
+	}
+
+	var req struct {
+		Username string `json:"username" binding:"required"`
+		ImageURL string `json:"image_url" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		return
+	}
+
+	// Find the user by username and update the profile picture URL
+	result := database.Model(&models.User{}).Where("username = ?", req.Username).Update("profile_pic_url", req.ImageURL)
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update profile picture"})
+		return
+	}
+
+	if result.RowsAffected == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Profile picture updated successfully"})
+}
+
+func GetProfilePic(c *gin.Context) {
+	database, err := api.DatabaseConnection()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database connection failed"})
+		return
+	}
+
+	username := c.Param("username") // Get username from URL parameter
+
+	var user models.User
+	if err := database.Select("profile_pic_url").Where("username = ?", username).First(&user).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+		}
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"profile_pic_url": user.ProfilePic})
 }
