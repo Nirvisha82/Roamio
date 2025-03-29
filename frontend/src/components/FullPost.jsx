@@ -15,7 +15,6 @@ const FullPost = () => {
   const [user, setUser] = useState(null);
   const [profilePicUrl, setProfilePicUrl] = useState("");
 
-  const [post, setPost] = useState(null);
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
   const [isFollowing, setIsFollowing] = useState(false);
@@ -29,17 +28,6 @@ const FullPost = () => {
     navigate("/");
   };
 
-  const addComment = () => {
-    if (newComment.trim()) {
-      setComments([...comments, {
-        id: comments.length + 1,
-        text: newComment,
-        replies: [],
-        username: JSON.parse(localStorage.getItem("currentUser")).Username
-      }]);
-      setNewComment("");
-    }
-  };
 
   // following related.
   const toggleFollow = () => {
@@ -49,11 +37,6 @@ const FullPost = () => {
   //Post related
   const [post, setPost] = useState(null);
 
-  // Add this useEffect after fetching the post
-  useEffect(() => {
-    const fetchPost = async () => {
-
-  // Fetch post and comments
   useEffect(() => {
     const fetchPostAndComments = async () => {
       try {
@@ -64,7 +47,7 @@ const FullPost = () => {
         }
         const parsedUser = JSON.parse(sessionUser);
         setUser(parsedUser);
-
+  
         const postResponse = await fetch(
           `http://localhost:8080/itineraries/post/${postId}`
         );
@@ -73,13 +56,13 @@ const FullPost = () => {
         }
         const postData = await postResponse.json();
         setPost(postData);
-
+  
         const profilePicResponse = await fetch(
           `http://localhost:8080/users/${postData.username}/profile-pic`
         );
         const profilePicData = await profilePicResponse.json();
         setProfilePicUrl(profilePicData.profile_pic_url);
-
+  
         const commentsResponse = await fetch(
           `http://localhost:8080/comments/${postId}`
         );
@@ -93,9 +76,9 @@ const FullPost = () => {
         setError(error.message);
       }
     };
-
+  
     fetchPostAndComments();
-  }, [postId, navigate]);
+  }, [postId, navigate]); 
 
   const addComment = async () => {
     if (!newComment.trim()) return;
@@ -219,15 +202,15 @@ const FullPost = () => {
     }
   };
 
+  useEffect(() => {
+    if (post) checkFollowStatus();
+  }, [post]);
+
   if (!post) {
     return (
       <div className="text-center py-8">Loading post...</div>)
   }
   const imagesArray = post?.Images ? post.Images.split(";") : [];
-      
-  useEffect(() => {
-    if (post) checkFollowStatus();
-  }, [post]);
 
   return (
     <div className="relative flex flex-col min-h-screen">

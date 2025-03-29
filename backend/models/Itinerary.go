@@ -20,15 +20,15 @@ type Itinerary struct {
 }
 
 type ItineraryRequest struct {
-	UserID      uint   `json:"user_id"`
-	StateCode   string `json:"state_code"` // Frontend sends the state code, not state ID
-	Title       string `json:"title"`
-	Description string `json:"description"`
-	NumDays     uint   `json:"num_days"`
-	NumNights   uint   `json:"num_nights"`
-	Size        uint   `json:"size"`
-	Budget      string `json:"budget"`
-	Highlights  string `json:"highlights"`
-	Suggestions string `json:"suggestions"`
-	Images      string `json:"images"`
+	UserID      uint   `json:"UserID"`
+	StateCode   string `json:"StateCode"` // Frontend sends the state code, not state ID
+	Title       string `json:"Title"`
+	Description string `json:"Description"`
+	NumDays     uint   `json:"NumDays"`
+	NumNights   uint   `json:"NumNights"`
+	Size        uint   `json:"Size"`
+	Budget      string `json:"Budget"`
+	Highlights  string `json:"Highlights"`
+	Suggestions string `json:"Suggestions"`
+	Images      string `json:"Images"`
 }
