@@ -36,6 +36,7 @@ func DatabaseConnection() (*gorm.DB, error) {
 		&models.Itinerary{},
 		&models.States{},
 		&models.Follows{},
+		&models.Comments{},
 	)
 	if err != nil {
 		log.Fatalf("Failed to migrate database: %v", err)

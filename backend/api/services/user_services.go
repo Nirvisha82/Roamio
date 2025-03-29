@@ -1,6 +1,7 @@
 package services
 
 import (
+	"fmt"
 	"roamio/backend/models"
 
 	"golang.org/x/crypto/bcrypt"
@@ -20,6 +21,54 @@ func GetUserProfile(database *gorm.DB, usernameOrEmail string) (*models.User, er
 	}
 
 	return &user, nil
+}
+
+func GetUserIDByUsername(database *gorm.DB, username string) (uint, error) {
+	var user struct {
+		ID uint
+	}
+
+	// Query the database for the user with the given username
+	err := database.Model(&models.User{}).
+		Select("id").
+		Where("username = ?", username).
+		Scan(&user).Error
+
+	// Check if any error occurred during the query
+	if err != nil {
+		return 0, err
+	}
+
+	// If no user found (ID is 0), return an error
+	if user.ID == 0 {
+		return 0, fmt.Errorf("user with username '%s' not found", username)
+	}
+
+	return user.ID, nil
+}
+
+func GetUsernameByID(database *gorm.DB, userID uint) (string, error) {
+	var user struct {
+		Username string
+	}
+
+	// Query the database for the user with the given ID
+	err := database.Model(&models.User{}).
+		Select("username").
+		Where("id = ?", userID).
+		Scan(&user).Error
+
+	// Check if any error occurred during the query
+	if err != nil {
+		return "", err
+	}
+
+	// If no user found (Username is empty), return an error
+	if user.Username == "" {
+		return "", fmt.Errorf("user with ID %d not found", userID)
+	}
+
+	return user.Username, nil
 }
 
 // HashPassword hashes a plain-text password using bcrypt
@@ -60,7 +109,14 @@ func RetrieveFollowings(database *gorm.DB, followerID uint) ([]struct {
 	Name string `json:"name"`
 }, error) {
 	var followings []struct {
-		Type string `json:"type"` // Either "user" or "page"
+		Type string `json:"type"`
+		ID   uint   `json:"id"`
+		Name string `json:"name"`
+	}
+
+	// Temporary slice to store results before appending
+	var userFollowings []struct {
+		Type string `json:"type"`
 		ID   uint   `json:"id"`
 		Name string `json:"name"`
 	}
@@ -70,20 +126,33 @@ func RetrieveFollowings(database *gorm.DB, followerID uint) ([]struct {
 		Select("'user' as type, users.id, users.username as name").
 		Joins("JOIN users ON users.id = follows.target_id").
 		Where("follows.follower_id = ? AND follows.type = 'user'", followerID).
-		Scan(&followings).Error
+		Scan(&userFollowings).Error
 	if err != nil {
 		return nil, err
 	}
 
+	// Append user followings to main slice
+	followings = append(followings, userFollowings...)
+
+	// Temporary slice for pages
+	var pageFollowings []struct {
+		Type string `json:"type"`
+		ID   uint   `json:"id"`
+		Name string `json:"name"`
+	}
+
 	// Query for pages being followed
 	err = database.Table("follows").
-		Select("'page' as type, pages.id, pages.name").
-		Joins("JOIN pages ON pages.id = follows.target_id").
+		Select("'page' as type, states.id, states.name").
+		Joins("JOIN states ON states.id = follows.target_id").
 		Where("follows.follower_id = ? AND follows.type = 'page'", followerID).
-		Scan(&followings).Error
+		Scan(&pageFollowings).Error
 	if err != nil {
 		return nil, err
 	}
+
+	// Append page followings to main slice
+	followings = append(followings, pageFollowings...)
 
 	return followings, nil
 }
@@ -94,12 +163,23 @@ func GetStateIDByCode(database *gorm.DB, stateCode string) (uint, error) {
 		ID uint
 	}
 
+	// Query the database for the state with the given code
 	err := database.Model(&models.States{}).
 		Select("id").
 		Where("code = ?", stateCode).
 		Scan(&state).Error
 
-	return state.ID, err
+	// Check if any error occurred during the query
+	if err != nil {
+		return 0, err
+	}
+
+	// If no state found (ID is 0), return an error
+	if state.ID == 0 {
+		return 0, fmt.Errorf("state with code '%s' not found", stateCode)
+	}
+
+	return state.ID, nil
 }
 
 // Get state details by given ID
@@ -114,10 +194,21 @@ func GetStateDetailsByID(database *gorm.DB, stateID uint) (struct {
 		Name string
 	}
 
+	// Query the database for the state with the given ID
 	err := database.Model(&models.States{}).
 		Select("id, code, name").
 		Where("id = ?", stateID).
 		Scan(&state).Error
 
-	return state, err
+	// Check if any error occurred during the query
+	if err != nil {
+		return state, err
+	}
+
+	// If no state found (ID is 0), return an error
+	if state.ID == 0 {
+		return state, fmt.Errorf("state with ID %d not found", stateID)
+	}
+
+	return state, nil
 }
