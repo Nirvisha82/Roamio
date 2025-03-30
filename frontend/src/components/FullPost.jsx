@@ -1,119 +1,117 @@
-/* eslint-disable jsx-a11y/anchor-is-valid */
 import React, { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import logo from "../images/logo.png";
-import profilePic1 from "../images/team1.jpg";
-import profilePic2 from "../images/team2.jpg";
-import profilePic3 from "../images/team3.jpg";
-import profilePic4 from "../images/team4.jpg";
-
-const posts = [
-  { id: 1, title: "Post 1", content: "This is the content of Post 1", profilePic: profilePic1, username: "SoniNirvisha" },
-  { id: 2, title: "Post 2", content: "This is the content of Post 2", profilePic: profilePic2, username: "RiddhiMehta" },
-  { id: 3, title: "Post 3", content: "This is the content of Post 3", profilePic: profilePic3, username: "Harsh" },
-  { id: 4, title: "Post 4", content: "This is the content of Post 4", profilePic: profilePic4, username: "NeelM" },
-];
+import profilePic from "../images/team1.jpg";
+import Slider from "react-slick";
+import postPic1 from "../images/post1.jpg";
+import postPic2 from "../images/post2.jpg";
 
 const FullPost = () => {
-  const { postId } = useParams();
   const navigate = useNavigate();
-  const post = posts.find((p) => p.id === parseInt(postId));
-
-  const handleFeeds = () => {
-    navigate("/feeds"); 
-  };
-  
-  const handleMyProfile = () => {
-    navigate("/myprofile"); 
-  };
-
-  const [comments, setComments] = useState([
-    { id: 1, text: "Great post!", replies: [] },
-    { id: 2, text: "Thanks for sharing!", replies: [] },
-  ]);
-  const [newComment, setNewComment] = useState("");
   const [isFollowing, setIsFollowing] = useState(false);
+  const [newComment, setNewComment] = useState("");
+  const [comments, setComments] = useState([
+    { ID: 1, Description: "Great post! Very informative." },
+    { ID: 2, Description: "I love this itinerary, thanks for sharing!" },
+  ]);
 
+  const post = {
+    username: "JohnDoe",
+    Title: "Amazing Trip to Paris",
+    Description: "Visited all the major attractions in Paris and had an unforgettable experience!",
+    NumDays: 5,
+    NumNights: 4,
+    Budget: "$1500",
+    Size: "4 people",
+    Highlights: "Eiffel Tower, Louvre Museum, Seine River Cruise",
+    Suggestions: "Book tickets in advance to avoid long queues.",
+    Images: [postPic1, postPic2],
+  };
+
+  const handleFeeds = () => navigate("/feeds");
+  const handleMyProfile = () => navigate(`/myprofile/`);
+  const handleLogout = () => navigate("/");
+  const toggleFollow = () => setIsFollowing(!isFollowing);
+  
   const addComment = () => {
-    if (newComment.trim() !== "") {
-      setComments([...comments, { id: comments.length + 1, text: newComment, replies: [] }]);
-      setNewComment("");
-    }
+    if (!newComment.trim()) return;
+    setComments([...comments, { ID: Date.now(), Description: newComment }]);
+    setNewComment("");
   };
-
-  const toggleFollow = () => {
-    setIsFollowing(!isFollowing);
-  };
-
-  if (!post) {
-    return (
-      <div className="flex flex-col items-center justify-center h-screen text-center">
-        <h1 className="text-2xl font-bold text-red-600">Post not found!</h1>
-        <button
-          onClick={() => navigate("/feeds")}
-          className="mt-4 px-6 py-2 bg-[#4A7C88] text-white font-semibold rounded-lg shadow-md hover:bg-[#38496a] transition"
-        >
-          Go Back to Feeds
-        </button>
-      </div>
-    );
-  }
 
   return (
     <div className="relative flex flex-col min-h-screen">
       <nav className="flex justify-between items-center p-5 bg-[#38496a] shadow-md h-16 fixed top-0 w-full z-50">
         <img src={logo} alt="Roamio Logo" className="h-12 w-auto" />
         <div className="flex space-x-6">
-          <a href="#" className="text-white hover:text-[#89A8B2] transition" onClick={handleFeeds}>Home</a>
-          <a href="#" className="text-white hover:text-[#89A8B2] transition" onClick={handleMyProfile}>My Profile</a>
-          <a href="#" className="text-white hover:text-[#89A8B2] transition">Logout</a>
+        <button
+            className="text-white hover:text-[#89A8B2] transition"
+            onClick={handleFeeds}
+          >
+            Feed
+          </button>
+          <button
+            className="text-white hover:text-[#89A8B2] transition"
+            onClick={handleMyProfile}
+          >
+            My Profile
+          </button>
+          <button
+            className="text-white hover:text-[#89A8B2] transition"
+            onClick={handleLogout}
+          >
+            Logout
+          </button>
         </div>
       </nav>
 
       <div className="flex flex-grow mt-16">
-        {/* Profile Section */}
-        <div className="w-1/4 p-10 bg-[#38496a] opacity-95 text-white flex flex-col items-center">
+        <div className="w-1/4 p-10 bg-[#38496a] text-white flex flex-col items-center">
           <h2 className="text-xl font-semibold mb-4">Profile</h2>
-          <img src={post.profilePic} alt="Profile" className="w-24 h-24 rounded-full object-cover" />
+          <img src={profilePic} alt="Profile" className="w-24 h-24 rounded-full object-cover" />
           <p className="text-lg font-semibold mt-2">{post.username}</p>
-          <button
-            onClick={toggleFollow}
-            className={`mt-3 px-6 py-2 rounded-lg font-semibold transition ${
-              isFollowing ? "bg-red-500 text-white" : "bg-[#4A7C88] text-white hover:bg-[#4a7c8876]"
-            }`}
-          >
+          <button onClick={toggleFollow} className={`mt-3 px-6 py-2 rounded-lg font-semibold transition ${isFollowing ? "bg-red-500" : "bg-[#4A7C88] text-white"}`}>
             {isFollowing ? "Unfollow -" : "Follow +"}
           </button>
         </div>
 
-        {/* Post Content Section */}
         <div className="w-3/4 p-6 bg-[#F1F0E8]">
-          <h1 className="text-2xl text-[#4A7C88] font-bold mb-4">{post.title}</h1>
-          <p className="text-lg text-gray-600 mb-4">{post.content}</p>
+          <h1 className="text-2xl text-[#4A7C88] font-bold mb-4">{post.Title}</h1>
+          <div className="flex">
+            {post.Images.length > 0 && (
+              <div className="w-1/2 flex justify-center">
+                <Slider dots={true} infinite={true} speed={500} slidesToShow={1} slidesToScroll={1} className="w-4/5">
+                  {post.Images.map((image, index) => (
+                    <div key={index}>
+                      <img src={image} alt={`Post Image ${index}`} className="w-full h-auto rounded-lg mb-2" />
+                    </div>
+                  ))}
+                </Slider>
+              </div>
+            )}
 
-          {/* Comments Section */}
+            <div className={`${post.Images.length > 0 ? "w-1/2" : "w-full"}`}>
+              <p className="text-base text-gray-600 mb-4">{post.Description}</p>
+              <p className="text-sm text-gray-600">Days: {post.NumDays}, Nights: {post.NumNights}</p>
+              <p className="text-sm text-gray-600">Budget: {post.Budget}, Group Size: {post.Size}</p>
+              <p className="text-sm text-gray-600">Highlights: {post.Highlights}</p>
+              <p className="text-sm text-gray-600">Suggestions: {post.Suggestions}</p>
+            </div>
+          </div>
+
           <div className="mt-6">
             <h2 className="text-xl font-semibold text-[#4A7C88]">Comments</h2>
             <div className="mt-4">
               {comments.map((comment) => (
-                <div key={comment.id} className="p-3 bg-white rounded-lg shadow-md mb-2">
-                  <p className="text-gray-800">{comment.text}</p>
+                <div key={comment.ID} className="p-3 bg-white rounded-lg shadow-md mb-2">
+                  <p className="text-gray-800">{comment.Description}</p>
                 </div>
               ))}
             </div>
 
-            {/* Add Comment Section */}
             <div className="mt-4">
-              <textarea
-                className="w-full p-2 border rounded-lg"
-                placeholder="Write a comment..."
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-              ></textarea>
-              <button
-                onClick={addComment}
-                className="mt-2 px-6 py-2 bg-[#4A7C88] text-white font-semibold rounded-lg shadow-md hover:bg-[#38496a] transition"
-              >
+              <textarea className="w-full p-2 border rounded-lg" placeholder="Write a comment..." value={newComment} onChange={(e) => setNewComment(e.target.value)}></textarea>
+              <button onClick={addComment} className="mt-2 px-6 py-2 bg-[#4A7C88] text-white font-semibold rounded-lg shadow-md hover:bg-[#38496a] transition">
                 Add Comment
               </button>
             </div>

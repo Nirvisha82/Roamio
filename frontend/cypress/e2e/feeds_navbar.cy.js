@@ -6,12 +6,12 @@ describe('Navigation Tests', () => {
   
     it('should navigate to My Profile page when clicking on My Profile link', () => {
       cy.contains('My Profile').click();
-      cy.url().should('include', 'http://localhost:3001/myprofile'); // Check URL change
+      cy.url().should('include', 'http://localhost:3001/myprofile'); 
     });
   
     it('should navigate to Create Post page when clicking on Create Post button', () => {
       cy.contains('Create Post').click();
-      cy.url().should('include', 'http://localhost:3001/post'); // Check URL change
+      cy.url().should('include', 'http://localhost:3001/post'); 
     });
   });
   

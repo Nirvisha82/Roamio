@@ -12,22 +12,42 @@ const Profile = () => {
     navigate("/feeds"); 
   };
 
-  const userDetails = {
-    name: "John Doe",
-    email: "johndoe@example.com",
-    location: "New York, USA",
-    bio: "Wanderlust traveler and adventure seeker",
-    itineraries: [
-      {
-        title: "Exploring California",
-        description: "A 5-day road trip covering San Francisco, LA, and Yosemite.",
-      },
-      {
-        title: "Magical Paris",
-        description: "A romantic getaway exploring the Eiffel Tower, Louvre, and more.",
-      },
-    ],
+  const handleLogout = () => {
+    navigate("/"); 
   };
+
+  const user = {
+    Fullname: "John Doe",
+    Email: "johndoe@example.com",
+    Username: "johndoe123",
+    Location: "New York, USA",
+    bio: "Traveler | Photographer | Adventure Enthusiast"
+  };
+
+  const itineraries = [
+    {
+      ID: 1,
+      Title: "Exploring Paris",
+      Description: "A 5-day trip to explore the beauty of Paris.",
+      NumDays: 5,
+      NumNights: 4,
+      Budget: "$2000",
+      Size: "2",
+      Highlights: "Eiffel Tower, Louvre Museum, Seine River Cruise",
+      Suggestions: "Try the local pastries and book tickets in advance."
+    },
+    {
+      ID: 2,
+      Title: "Japan Adventure",
+      Description: "A 10-day cultural and food adventure in Japan.",
+      NumDays: 10,
+      NumNights: 9,
+      Budget: "$3000",
+      Size: "5",
+      Highlights: "Tokyo, Kyoto, Mount Fuji, Sushi Tasting",
+      Suggestions: "Learn basic Japanese phrases for a better experience."
+    }
+  ];
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
@@ -44,8 +64,18 @@ const Profile = () => {
       <nav className="flex justify-between items-center p-5 bg-[#38496a] shadow-md h-16 fixed top-0 w-full z-50">
         <img src={logo} alt="Roamio Logo" className="h-12 w-auto" />
         <div className="flex space-x-6">
-          <a href="#" className="text-white hover:text-[#89A8B2] transition" onClick={handleFeeds}>Home</a>
-          <a href="#" className="text-white hover:text-[#89A8B2] transition">Logout</a>
+        <button
+            className="text-white hover:text-[#89A8B2] transition"
+            onClick={handleFeeds}
+          >
+            Feed
+          </button>
+          <button
+            className="text-white hover:text-[#89A8B2] transition"
+            onClick={handleLogout}
+          >
+            Logout
+          </button>
         </div>
       </nav>
       
@@ -73,25 +103,38 @@ const Profile = () => {
 
         <div className="mb-8">
           <h2 className="text-2xl font-semibold text-[#2E5A6B] mb-4">Basic Details</h2>
-          <p><strong>Name:</strong> {userDetails.name}</p>
-          <p><strong>Email:</strong> {userDetails.email}</p>
-          <p><strong>Location:</strong> {userDetails.location}</p>
-          <p><strong>Bio:</strong> {userDetails.bio}</p>
+          <p><strong>Full Name:</strong> {user.Fullname}</p>
+          <p><strong>Email:</strong> {user.Email}</p>
+          <p><strong>Username:</strong> {user.Username}</p>
+          <p><strong>Location:</strong> {user.Location}</p>
+          {user.bio && <p><strong>Bio:</strong> {user.bio}</p>}
         </div>
 
         <div>
           <h2 className="text-2xl font-semibold text-[#2E5A6B] mb-4">My Itineraries</h2>
-          {userDetails.itineraries.map((itinerary, index) => (
-            <div
-              key={index}
-              className="mb-4 p-4 bg-[#E5E1DA] rounded-lg shadow"
-            >
-              <h3 className="text-xl font-bold text-[#2E5A6B]">
-                {itinerary.title}
-              </h3>
-              <p>{itinerary.description}</p>
-            </div>
-          ))}
+          {itineraries.length > 0 ? (
+            itineraries.map((itinerary) => (
+              <div key={itinerary.ID} className="mb-4 p-4 bg-[#E5E1DA] rounded-lg shadow">
+                <h3 className="text-xl font-bold text-[#2E5A6B]">{itinerary.Title}</h3>
+                <p className="text-gray-700 mb-2">{itinerary.Description}</p>
+                <div className="flex justify-between text-sm text-[#4A7C88]">
+                  <span>{itinerary.NumDays} days • {itinerary.NumNights} nights</span>
+                  <span>Budget: {itinerary.Budget}</span>
+                  <span>Group Size: {itinerary.Size}</span>
+                </div>
+                {itinerary.Highlights && itinerary.Suggestions && (
+                  <div className="mt-2 p-2 bg-white rounded">
+                    <p className="font-medium text-[#2E5A6B]">Highlights:</p>
+                    <p>{itinerary.Highlights}</p>
+                    <p className="font-medium text-[#2E5A6B]">Suggestions:</p>
+                    <p>{itinerary.Suggestions}</p>
+                  </div>
+                )}
+              </div>
+            ))
+          ) : (
+            <p className="text-gray-600">No itineraries created yet</p>
+          )}
         </div>
       </div>
     </div>
