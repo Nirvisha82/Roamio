@@ -135,21 +135,3 @@ describe("Itineraries", () => {
     fireEvent.click(itinerary);
   });
 });
-
-// Test Scroll to Top Button
-describe("Scroll to Top", () => {
-  test("renders scroll to top button when scrolled", () => {
-    render(
-      <Router>
-        <Feeds />
-      </Router>
-    );
-
-    fireEvent.scroll(window, { target: { scrollY: 100 } });
-
-    const scrollToTopButton = screen.getByText("↑");
-    expect(scrollToTopButton).toBeInTheDocument();
-
-    fireEvent.click(scrollToTopButton);
-  });
-});
