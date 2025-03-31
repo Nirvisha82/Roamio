@@ -1,7 +1,7 @@
 /* eslint-disable no-undef */
-describe('Post Navbar Navigation Tests', () => {
+describe('State Navbar Navigation Tests', () => {
     beforeEach(() => {
-      cy.visit('http://localhost:3001/post');
+      cy.visit('http://localhost:3001/state/NY');
     });
   
     it('should navigate to feeds when Feed button is clicked', () => {

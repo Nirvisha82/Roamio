@@ -1,5 +1,5 @@
 /* eslint-disable no-undef */
-describe('Navigation Tests', () => {
+describe('Feeds Navigation Tests', () => {
     beforeEach(() => {
       cy.visit('http://localhost:3001/feeds');
     });
@@ -8,10 +8,10 @@ describe('Navigation Tests', () => {
       cy.contains('My Profile').click();
       cy.url().should('include', 'http://localhost:3001/myprofile'); 
     });
-  
-    it('should navigate to Create Post page when clicking on Create Post button', () => {
-      cy.contains('Create Post').click();
-      cy.url().should('include', 'http://localhost:3001/post'); 
+
+    it('should log out and redirect to home page', () => {
+      cy.contains('Logout').click();
+      cy.url().should('include', 'http://localhost:3001/'); 
     });
   });
   

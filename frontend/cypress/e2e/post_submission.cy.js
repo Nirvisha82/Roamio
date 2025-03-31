@@ -1,32 +1,27 @@
 /* eslint-disable no-undef */
-describe('Form Submission Test', () => {
+describe('Post Submission Test', () => {
     beforeEach(() => {
       cy.visit('http://localhost:3001/post');
     });
   
     it('should fill the form and submit it', () => {
-      // Fill the itinerary title
-      cy.get('input[placeholder="Itinerary Title"]').type('California Trip');
+      cy.get('input#title').type('California Trip');
+      cy.get('textarea#description').type('A 7-day road trip in California.');
+      cy.get("[class*=control]", { timeout: 10000 })
+      .should("be.visible")
+      .click();
+      cy.get("[class*=menu]", { timeout: 5000 })
+      .should("be.visible")
+      .contains("California (CA)")
+      .click();
+      cy.get('input#numdays').type('7');
+      cy.get('input#numnights').type('6');
+      cy.get('input#size').type('4');
+      cy.get('input#budget').type('1000');
+      cy.get('textarea#highlights').type('Golden Gate Bridge, Yosemite');
+      cy.get('textarea#suggestions').type('Airbnb, Hotel California');
   
-      // Fill the description
-      cy.get('textarea[placeholder="Description"]').type('A 7-day road trip in California.');
-  
-      // Fill the number of days and nights
-      cy.get('input[placeholder="Number of Days"]').type('7');
-      cy.get('input[placeholder="Number of Nights"]').type('6');
-  
-      // Fill the group size and estimated budget
-      cy.get('input[placeholder="Group Size"]').type('4');
-      cy.get('input[placeholder="Estimated Budget"]').type('$1000');
-  
-      // Fill trip highlights and stay suggestions
-      cy.get('textarea[placeholder="Trip Highlights (e.g., must-see spots, experiences)"]')
-        .type('Golden Gate Bridge, Yosemite');
-      cy.get('textarea[placeholder="Stay Suggestions (e.g., hotels, hostels, Airbnbs)"]')
-        .type('Airbnb, Hotel California');
-
       cy.get('button[type="submit"]').click();
-      cy.url().should('include', 'http://localhost:3001/feeds');
+      cy.url().should('include', '/feeds');
     });
   });
-  

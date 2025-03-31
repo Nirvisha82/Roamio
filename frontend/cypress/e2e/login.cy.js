@@ -1,7 +1,7 @@
 /* eslint-disable no-undef */
 describe('Roamio Login Test', () => {
   beforeEach(() => {
-    cy.visit('http://localhost:3001'); // Update with your app URL if different
+    cy.visit('http://localhost:3001'); 
   });
 
   it('should switch to login form when clicking "Login" button', () => {
@@ -17,6 +17,6 @@ describe('Roamio Login Test', () => {
 
     // Verify successful login (adjust based on actual behavior)
     cy.url().should('include', '/feeds');
-    cy.contains('Filters').should('be.visible');
+    cy.contains('All Itineraries').should('be.visible');
   });
 });

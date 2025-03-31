@@ -1,24 +1,29 @@
 /* eslint-disable no-undef */
-describe('Posts Display and Navigation', () => {
+describe('Posts Display and Navigation Tests', () => {
     beforeEach(() => {
-      cy.visit('http://localhost:3001/feeds'); // Ensure the app is running before each test
+      cy.visit('http://localhost:3001/feeds');
     });
-  
-    it('should display the posts section', () => {
-      cy.contains('Filters').should('be.visible');
+
+    it('should display the search and create post buttons', () => {
+      cy.contains('Search your destination').should('be.visible');
       cy.contains('Create Post').should('be.visible');
-      cy.contains('Post 1').should('be.visible');
-      cy.contains('Post 2').should('be.visible');
     });
   
-    it('should navigate to individual post page when clicking on a post', () => {
-      cy.contains('Post 1').click();
-      cy.url().should('include', '/post/1'); // Check if URL changes to the post ID
+    it('should display itineraries correctly', () => {
+      cy.contains('All Itineraries').should('be.visible');
+      cy.contains('Trip to Love City Paris').should('be.visible');
+      cy.contains('New York Adventure').should('be.visible');
+      cy.contains('Texas Road Trip').should('be.visible');
     });
   
-    it('should display post content correctly', () => {
-      cy.contains('Post 1').click();
-      cy.contains('Post 1').should('be.visible');
+    it('should navigate to individual itinerary when clicked', () => {
+      cy.contains('Trip to Love City Paris').click();
+      cy.url().should('include', '/post/1'); 
     });
-  });
   
+    it('should display the correct itinerary content', () => {
+      cy.contains('Trip to Love City Paris').click();
+      cy.contains('Amazing Trip to Paris').should('be.visible');
+      cy.contains('Eiffel Tower, Louvre Museum').should('be.visible');
+    });
+});

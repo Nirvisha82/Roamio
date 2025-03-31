@@ -1,5 +1,5 @@
 /* eslint-disable no-undef */
-describe('Register Test', () => {
+describe('Roamio Register Test', () => {
   beforeEach(() => {
     cy.visit('http://localhost:3001');
     cy.contains('Join Us').click();
@@ -11,18 +11,16 @@ describe('Register Test', () => {
     cy.get('input[placeholder="Email"]').type('testuser@example.com');
     cy.get('input[placeholder="Password"]').type('password123');
     cy.get('input[placeholder="Birthdate"]').type('1995-06-15');
-    cy.get("[class*=control]", { timeout: 10000 }) // Looks for any class containing "control"
+    cy.get("[class*=control]", { timeout: 10000 })
       .should("be.visible")
       .click();
 
     // Ensure menu appears and select city
-    cy.get("[class*=menu]", { timeout: 5000 }) // Looks for dropdown menu
+    cy.get("[class*=menu]", { timeout: 5000 })
       .should("be.visible")
-      .contains("East New York, NY") // Update with actual city format
+      .contains("East New York, NY")
       .click();
-
-    // Verify city selection
-    cy.get("[class*=singleValue]") // Looks for selected value
+    cy.get("[class*=singleValue]") 
       .should("contain.text", "East New York");
     cy.contains('Register').click();
 
