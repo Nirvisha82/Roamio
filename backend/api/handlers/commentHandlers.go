@@ -26,6 +26,11 @@ func CreateComment(c *gin.Context) {
 		return
 	}
 
+	if comment.UserId == 0 || comment.PostId == 0 || comment.Description == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing required fields"})
+		return
+	}
+
 	if err := database.Create(&comment).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error":   "Failed to create comment",
@@ -53,7 +58,7 @@ func GetAllComments(c *gin.Context) {
 		})
 		return
 	}
-	c.JSON(http.StatusCreated, gin.H{"comments": comments})
+	c.JSON(http.StatusOK, gin.H{"comments": comments})
 }
 
 func GetCommentsByPostId(c *gin.Context) {
@@ -76,7 +81,7 @@ func GetCommentsByPostId(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"comments": comments})
+	c.JSON(http.StatusOK, gin.H{"comments": comments})
 }
 
 func UpdateComment(c *gin.Context) {
