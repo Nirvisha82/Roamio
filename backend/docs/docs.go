@@ -297,8 +297,8 @@ const docTemplate = `{
                 }
             }
         },
-        "/users/followers": {
-            "post": {
+        "/users/followers/{type}/{target_id}": {
+            "get": {
                 "description": "Get a list of followers for a user or page.",
                 "consumes": [
                     "application/json"
@@ -312,13 +312,18 @@ const docTemplate = `{
                 "summary": "Retrieve followers",
                 "parameters": [
                     {
-                        "description": "Target ID and type",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.GetFollowersRequest"
-                        }
+                        "type": "string",
+                        "description": "Target type (user or page)",
+                        "name": "type",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Target identifier (username for user, state code for page)",
+                        "name": "target_id",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -332,19 +337,37 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "{\"message\":\"Invalid request body or type}"
+                        "description": "{\"error\":\"Invalid type. Must be 'user' or 'page'\"}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
                     },
                     "404": {
-                        "description": "{\"message\":\"Target not found}"
+                        "description": "{\"error\":\"Target user not found\"} or {\"error\":\"State not found in Database\"}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
                     },
                     "500": {
-                        "description": "{\"message\":\"Failed to retrieve followers}"
+                        "description": "{\"error\":\"Failed to retrieve followers\"}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
                     }
                 }
             }
         },
-        "/users/followings": {
-            "post": {
+        "/users/followings/{user_id}": {
+            "get": {
                 "description": "Get a list of users or pages that a user is following.",
                 "consumes": [
                     "application/json"
@@ -358,13 +381,11 @@ const docTemplate = `{
                 "summary": "Retrieve followings",
                 "parameters": [
                     {
-                        "description": "User ID",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.GetFollowingsRequest"
-                        }
+                        "type": "string",
+                        "description": "User identifier (username)",
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -378,13 +399,31 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "{\"message\":\"Invalid request body\"}"
+                        "description": "{\"error\":\"Missing user_id in URL\"}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
                     },
                     "404": {
-                        "description": "{\"message\":\"User not found\"}"
+                        "description": "{\"error\":\"User not found\"}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
                     },
                     "500": {
-                        "description": "{\"message\":\"Failed to retrieve followings\"}"
+                        "description": "{\"error\":\"Failed to retrieve followings\"}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
                     }
                 }
             }
@@ -428,6 +467,96 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/users/profile-pic": {
+            "post": {
+                "description": "The API accepts url of the profile image on aws and stores into DB.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Updates profile picture.",
+                "parameters": [
+                    {
+                        "description": "Username, ImageURL",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.ProfilePicUpdate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"message\":\"Profile picture updated successfully\"}"
+                    },
+                    "400": {
+                        "description": "{\"message\":\"Invalid request body or type\"}"
+                    },
+                    "500": {
+                        "description": "{\"message\":\"Database error\"}"
+                    }
+                }
+            }
+        },
+        "/users/profile-pic/{username}": {
+            "get": {
+                "description": "Get the profile picture URL of a user by username.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Retrieve user profile picture",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Username of the user",
+                        "name": "username",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"profile_pic_url\": \"https://example.com/profile.jpg\"}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "{\"error\":\"User not found\"}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "{\"error\":\"Database connection failed\"}\" or \"{\"error\":\"Database error\"}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
                     }
                 }
             }
@@ -581,46 +710,16 @@ const docTemplate = `{
         "models.Following": {
             "type": "object",
             "properties": {
-                "full_name": {
-                    "type": "string",
-                    "example": "Jane Smith"
-                },
                 "id": {
                     "type": "integer",
                     "example": 2
-                }
-            }
-        },
-        "models.GetFollowersRequest": {
-            "type": "object",
-            "required": [
-                "target_id",
-                "type"
-            ],
-            "properties": {
-                "target_id": {
-                    "type": "integer",
-                    "example": 1
+                },
+                "name": {
+                    "type": "string",
+                    "example": "cooldude"
                 },
                 "type": {
-                    "type": "string",
-                    "enum": [
-                        "user",
-                        "page"
-                    ],
-                    "example": "user"
-                }
-            }
-        },
-        "models.GetFollowingsRequest": {
-            "type": "object",
-            "required": [
-                "user_id"
-            ],
-            "properties": {
-                "user_id": {
-                    "type": "integer",
-                    "example": 1
+                    "type": "string"
                 }
             }
         },
@@ -633,12 +732,12 @@ const docTemplate = `{
             ],
             "properties": {
                 "follower_id": {
-                    "type": "integer",
-                    "example": 1
+                    "type": "string",
+                    "example": "cooldude"
                 },
                 "target_id": {
-                    "type": "integer",
-                    "example": 2
+                    "type": "string",
+                    "example": "NirvishaSoni"
                 },
                 "type": {
                     "type": "string",
@@ -674,6 +773,9 @@ const docTemplate = `{
                 "numNights": {
                     "type": "integer"
                 },
+                "postedAt": {
+                    "type": "string"
+                },
                 "size": {
                     "type": "integer"
                 },
@@ -684,6 +786,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "title": {
+                    "type": "string"
+                },
+                "updatedAt": {
                     "type": "string"
                 },
                 "userID": {
@@ -700,6 +805,21 @@ const docTemplate = `{
                 "username": {
                     "type": "string",
                     "example": "john_doe"
+                }
+            }
+        },
+        "models.ProfilePicUpdate": {
+            "type": "object",
+            "required": [
+                "image_url",
+                "username"
+            ],
+            "properties": {
+                "image_url": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
                 }
             }
         },
@@ -721,12 +841,12 @@ const docTemplate = `{
             ],
             "properties": {
                 "follower_id": {
-                    "type": "integer",
-                    "example": 1
+                    "type": "string",
+                    "example": "cooldude"
                 },
                 "target_id": {
-                    "type": "integer",
-                    "example": 2
+                    "type": "string",
+                    "example": "NirvishaSoni"
                 },
                 "type": {
                     "type": "string",

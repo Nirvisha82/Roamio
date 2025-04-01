@@ -234,12 +234,13 @@ func CreateFollow(c *gin.Context) {
 // @Tags users
 // @Accept json
 // @Produce json
-// @Param request body models.GetFollowersRequest true "Target ID and type"
+// @Param type path string true "Target type (user or page)"
+// @Param target_id path string true "Target identifier (username for user, state code for page)"
 // @Success 200 {array} models.Follower "List of followers"
-// @Failure 400 "{"message":"Invalid request body or type}"
-// @Failure 404 "{"message":"Target not found}"
-// @Failure 500 "{"message":"Failed to retrieve followers}"
-// @Router /users/followers [post]
+// @Failure 400 {object} map[string]string "{"error":"Invalid type. Must be 'user' or 'page'"}"
+// @Failure 404 {object} map[string]string "{"error":"Target user not found"} or {"error":"State not found in Database"}"
+// @Failure 500 {object} map[string]string "{"error":"Failed to retrieve followers"}"
+// @Router /users/followers/{type}/{target_id} [get]
 func GetFollowers(c *gin.Context) {
 	database, err := api.DatabaseConnection()
 	if err != nil {
@@ -292,12 +293,12 @@ func GetFollowers(c *gin.Context) {
 // @Tags users
 // @Accept json
 // @Produce json
-// @Param request body models.GetFollowingsRequest true "User ID"
+// @Param user_id path string true "User identifier (username)"
 // @Success 200 {array} models.Following "List of followings"
-// @Failure 400 "{"message":"Invalid request body"}"
-// @Failure 404 "{"message":"User not found"}"
-// @Failure 500 "{"message":"Failed to retrieve followings"}"
-// @Router /users/followings [post]
+// @Failure 400 {object} map[string]string "{"error":"Missing user_id in URL"}"
+// @Failure 404 {object} map[string]string "{"error":"User not found"}"
+// @Failure 500 {object} map[string]string "{"error":"Failed to retrieve followings"}"
+// @Router /users/followings/{user_id} [get]
 func GetFollowings(c *gin.Context) {
 	database, err := api.DatabaseConnection()
 	if err != nil {
@@ -479,6 +480,16 @@ func IsFollowing(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"isFollowing": true})
 }
 
+// @Summary Updates profile picture.
+// @Description The API accepts url of the profile image on aws and stores into DB.
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param request body models.ProfilePicUpdate true "Username, ImageURL"
+// @Success 200 "{"message":"Profile picture updated successfully"}"
+// @Failure 400 "{"message":"Invalid request body or type"}"
+// @Failure 500 "{"message":"Database error"}"
+// @Router /users/profile-pic [post]
 func UpdateProfilePic(c *gin.Context) {
 	database, err := api.DatabaseConnection()
 	if err != nil {
@@ -511,6 +522,16 @@ func UpdateProfilePic(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Profile picture updated successfully"})
 }
 
+// @Summary Retrieve user profile picture
+// @Description Get the profile picture URL of a user by username.
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param username path string true "Username of the user"
+// @Success 200 {object} map[string]string "{"profile_pic_url": "https://example.com/profile.jpg"}"
+// @Failure 404 {object} map[string]string "{"error":"User not found"}"
+// @Failure 500 {object} map[string]string "{"error":"Database connection failed"}" or "{"error":"Database error"}"
+// @Router /users/profile-pic/{username} [get]
 func GetProfilePic(c *gin.Context) {
 	database, err := api.DatabaseConnection()
 	if err != nil {
