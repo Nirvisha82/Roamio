@@ -1,4 +1,15 @@
 definitions:
+  models.Comments:
+    properties:
+      description:
+        type: string
+      id:
+        type: integer
+      postId:
+        type: integer
+      userId:
+        type: integer
+    type: object
   models.CreateItineraryRequest:
     properties:
       budget:
@@ -257,6 +268,135 @@ info:
   title: Roamio
   version: "0.2"
 paths:
+  /comments:
+    get:
+      description: Retrieves a list of all comments
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'comments: List of comments'
+          schema:
+            additionalProperties:
+              items:
+                $ref: '#/definitions/models.Comments'
+              type: array
+            type: object
+        "500":
+          description: 'error: Database connection failed or Failed to get list of
+            all comments'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get all comments
+      tags:
+      - comments
+    post:
+      consumes:
+      - application/json
+      description: Creates a new comment with the provided data
+      parameters:
+      - description: Comment data
+        in: body
+        name: comment
+        required: true
+        schema:
+          $ref: '#/definitions/models.Comments'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: 'message: Comment created successfully'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: 'error: Invalid request format or missing fields'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: 'error: Database connection failed or Failed to create comment'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create a new comment
+      tags:
+      - comments
+    put:
+      consumes:
+      - application/json
+      description: Updates an existing comment with the provided data
+      parameters:
+      - description: Updated comment data
+        in: body
+        name: comment
+        required: true
+        schema:
+          $ref: '#/definitions/models.Comments'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'message: Comment updated successfully, comment: Updated comment'
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: 'error: Invalid request format'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: 'error: Comment not found'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: 'error: Database connection failed or Failed to update comment'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Update a comment
+      tags:
+      - comments
+  /comments/post/{postID}:
+    get:
+      description: Retrieves a list of comments for a specific post
+      parameters:
+      - description: Post ID
+        in: path
+        name: postID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'comments: List of comments for the post'
+          schema:
+            additionalProperties:
+              items:
+                $ref: '#/definitions/models.Comments'
+              type: array
+            type: object
+        "500":
+          description: 'error: Database connection failed or Failed to get list of
+            all comments'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get comments by post ID
+      tags:
+      - comments
   /itineraries:
     get:
       description: Retrieve all itineraries with user details.
