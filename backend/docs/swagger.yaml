@@ -48,44 +48,23 @@ definitions:
     type: object
   models.Following:
     properties:
-      full_name:
-        example: Jane Smith
-        type: string
       id:
         example: 2
         type: integer
-    type: object
-  models.GetFollowersRequest:
-    properties:
-      target_id:
-        example: 1
-        type: integer
-      type:
-        enum:
-        - user
-        - page
-        example: user
+      name:
+        example: cooldude
         type: string
-    required:
-    - target_id
-    - type
-    type: object
-  models.GetFollowingsRequest:
-    properties:
-      user_id:
-        example: 1
-        type: integer
-    required:
-    - user_id
+      type:
+        type: string
     type: object
   models.IsFollowingRequest:
     properties:
       follower_id:
-        example: 1
-        type: integer
+        example: cooldude
+        type: string
       target_id:
-        example: 2
-        type: integer
+        example: NirvishaSoni
+        type: string
       type:
         enum:
         - user
@@ -113,6 +92,8 @@ definitions:
         type: integer
       numNights:
         type: integer
+      postedAt:
+        type: string
       size:
         type: integer
       stateId:
@@ -120,6 +101,8 @@ definitions:
       suggestions:
         type: string
       title:
+        type: string
+      updatedAt:
         type: string
       userID:
         type: integer
@@ -132,6 +115,16 @@ definitions:
         example: john_doe
         type: string
     type: object
+  models.ProfilePicUpdate:
+    properties:
+      image_url:
+        type: string
+      username:
+        type: string
+    required:
+    - image_url
+    - username
+    type: object
   models.SuccessResponse:
     properties:
       message:
@@ -141,11 +134,11 @@ definitions:
   models.UnfollowRequest:
     properties:
       follower_id:
-        example: 1
-        type: integer
+        example: cooldude
+        type: string
       target_id:
-        example: 2
-        type: integer
+        example: NirvishaSoni
+        type: string
       type:
         enum:
         - user
@@ -449,18 +442,22 @@ paths:
       summary: Check follow status
       tags:
       - users
-  /users/followers:
-    post:
+  /users/followers/{type}/{target_id}:
+    get:
       consumes:
       - application/json
       description: Get a list of followers for a user or page.
       parameters:
-      - description: Target ID and type
-        in: body
-        name: request
+      - description: Target type (user or page)
+        in: path
+        name: type
         required: true
-        schema:
-          $ref: '#/definitions/models.GetFollowersRequest'
+        type: string
+      - description: Target identifier (username for user, state code for page)
+        in: path
+        name: target_id
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -471,26 +468,38 @@ paths:
               $ref: '#/definitions/models.Follower'
             type: array
         "400":
-          description: '{"message":"Invalid request body or type}'
+          description: '{"error":"Invalid type. Must be ''user'' or ''page''"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
         "404":
-          description: '{"message":"Target not found}'
+          description: '{"error":"Target user not found"} or {"error":"State not found
+            in Database"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
         "500":
-          description: '{"message":"Failed to retrieve followers}'
+          description: '{"error":"Failed to retrieve followers"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
       summary: Retrieve followers
       tags:
       - users
-  /users/followings:
-    post:
+  /users/followings/{user_id}:
+    get:
       consumes:
       - application/json
       description: Get a list of users or pages that a user is following.
       parameters:
-      - description: User ID
-        in: body
-        name: request
+      - description: User identifier (username)
+        in: path
+        name: user_id
         required: true
-        schema:
-          $ref: '#/definitions/models.GetFollowingsRequest'
+        type: string
       produces:
       - application/json
       responses:
@@ -501,11 +510,23 @@ paths:
               $ref: '#/definitions/models.Following'
             type: array
         "400":
-          description: '{"message":"Invalid request body"}'
+          description: '{"error":"Missing user_id in URL"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
         "404":
-          description: '{"message":"User not found"}'
+          description: '{"error":"User not found"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
         "500":
-          description: '{"message":"Failed to retrieve followings"}'
+          description: '{"error":"Failed to retrieve followings"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
       summary: Retrieve followings
       tags:
       - users
@@ -535,6 +556,67 @@ paths:
         "500":
           description: Internal server error
       summary: User login
+      tags:
+      - users
+  /users/profile-pic:
+    post:
+      consumes:
+      - application/json
+      description: The API accepts url of the profile image on aws and stores into
+        DB.
+      parameters:
+      - description: Username, ImageURL
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.ProfilePicUpdate'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"message":"Profile picture updated successfully"}'
+        "400":
+          description: '{"message":"Invalid request body or type"}'
+        "500":
+          description: '{"message":"Database error"}'
+      summary: Updates profile picture.
+      tags:
+      - users
+  /users/profile-pic/{username}:
+    get:
+      consumes:
+      - application/json
+      description: Get the profile picture URL of a user by username.
+      parameters:
+      - description: Username of the user
+        in: path
+        name: username
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"profile_pic_url": "https://example.com/profile.jpg"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: '{"error":"User not found"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: '{"error":"Database connection failed"}" or "{"error":"Database
+            error"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Retrieve user profile picture
       tags:
       - users
   /users/register:

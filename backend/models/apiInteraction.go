@@ -45,7 +45,7 @@ type loginResponse struct {
 }
 
 type GetFollowersRequest struct {
-	TargetID uint   `json:"target_id" binding:"required" example:"1"`
+	TargetID string `json:"target_id" binding:"required" example:"cooldude,CA"`
 	Type     string `json:"type" binding:"required" example:"user" enums:"user,page"`
 }
 
@@ -54,14 +54,14 @@ type GetFollowingsRequest struct {
 }
 
 type UnfollowRequest struct {
-	FollowerID uint   `json:"follower_id" binding:"required" example:"1"`
-	TargetID   uint   `json:"target_id" binding:"required" example:"2"`
+	FollowerID string `json:"follower_id" binding:"required" example:"cooldude"`
+	TargetID   string `json:"target_id" binding:"required" example:"NirvishaSoni"`
 	Type       string `json:"type" binding:"required,oneof=user page" example:"user"`
 }
 
 type IsFollowingRequest struct {
-	FollowerID uint   `json:"follower_id" binding:"required" example:"1"`
-	TargetID   uint   `json:"target_id" binding:"required" example:"2"`
+	FollowerID string `json:"follower_id" binding:"required" example:"cooldude"`
+	TargetID   string `json:"target_id" binding:"required" example:"NirvishaSoni"`
 	Type       string `json:"type" binding:"required,oneof=user page" example:"user"`
 }
 
@@ -76,7 +76,8 @@ type Follower struct {
 
 type Following struct {
 	ID       uint   `json:"id" example:"2"`
-	FullName string `json:"full_name" example:"Jane Smith"`
+	FullName string `json:"name" example:"cooldude"`
+	Type     string `json:type example:"user"`
 }
 
 type CreateItineraryRequest struct {
@@ -101,6 +102,7 @@ type ErrorResponse struct {
 type SuccessResponse struct {
 	Message string `json:"message" example:"Operation successful"`
 }
+
 type responseItinerary struct {
 	ID        uint   `json:"id" example:"1"`
 	Title     string `json:"title" example:"Trip to Florida"`
@@ -110,4 +112,8 @@ type responseItinerary struct {
 	NumNights int    `json:"num_nights" example:"4"`
 	Size      int    `json:"size" example:"3"`
 	Budget    string `json:"budget" example:"$1000"`
+}
+type ProfilePicUpdate struct {
+	Username string `json:"username" binding:"required"`
+	ImageURL string `json:"image_url" binding:"required"`
 }
