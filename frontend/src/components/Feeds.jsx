@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Select from "react-select";
 import { State } from "country-state-city";
 import logo from "../images/logo.png";
-import profilePic1 from "../images/team1.jpg";
+import profilePic from "../images/default.jpg";
 
 const Feeds = () => {
   const navigate = useNavigate();
@@ -188,7 +188,7 @@ const Feeds = () => {
                     <div className="flex items-center space-x-2">
                       <span className="text-sm font-sm text-gray-400">{itinerary.username}</span>
                       <img 
-                        src={profilePics[itinerary.username] || profilePic1} 
+                        src={profilePics[itinerary.username] || profilePic} 
                         alt="Profile" 
                         className="w-7 h-7 rounded-full object-cover" 
                       />

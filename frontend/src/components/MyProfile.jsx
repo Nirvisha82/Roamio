@@ -144,26 +144,36 @@ const Profile = () => {
       <div className="max-w-4xl mx-auto bg-[#ffffffee] p-8 rounded-2xl shadow-lg mt-20">
         <h1 className="text-3xl font-bold text-[#2E5A6B] mb-6">My Profile</h1>
 
-        {/* Profile Image Section */}
-        <div className="flex items-center space-x-6 mb-8">
+        <div className="flex items-center space-x-8 mb-8">
+          {/* Profile Photo */}
           <div className="w-32 h-32 bg-[#E5E1DA] rounded-full flex items-center justify-center overflow-hidden">
             {profileImage ? (
-              <img
-                src={profileImage} // Use the fetched image URL here
-                alt="Profile"
-                className="w-full h-full object-cover"
-              />
+              <img src={profileImage} alt="Profile" className="w-full h-full object-cover" />
             ) : (
               <span className="text-[#2E5A6B]">No Photo</span>
             )}
           </div>
+
+          {/* Upload Button */}
           <input
             type="file"
             accept="image/*"
             onChange={handleImageUpload}
             className="block text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-[#4A7C88] file:text-white hover:file:bg-[#2E5A6B]"
           />
+
+          {/* Followers & Following */}
+          <div className="flex flex-col space-y-1 text-[#2E5A6B] font-medium">
+            <p className="text-lg font-bold">Followers</p>
+            <p className="text-center"><span>120</span></p>
+          </div>
+          <div className="flex flex-col space-y-1 text-[#2E5A6B] font-medium">
+            <p className="text-lg font-bold">Following</p>
+            <p className="text-center"><span>85</span></p>
+          </div>
         </div>
+
+
 
         {/* User Details Section */}
         <div className="mb-8">
