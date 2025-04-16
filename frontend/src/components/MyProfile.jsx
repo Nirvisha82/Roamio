@@ -273,7 +273,7 @@ const Profile = () => {
                             <div className="w-full h-full bg-gray-300"></div>
                           )}
                         </div>
-                        <span>{f.Username}</span>
+                        <span onClick={() => navigate(`/userprofile/${f.Username}`)}>{f.Username}</span>
                       </div>
                     ))
                   )}
@@ -311,7 +311,7 @@ const Profile = () => {
                               <div className="w-full h-full bg-gray-300"></div>
                             )}
                           </div>
-                          <span>{f.name}</span>
+                          <span onClick={() => navigate(`/userprofile/${f.name}`)}>{f.name}</span>
                         </div>
                         <button onClick={() => handleUnfollowUser(f.name)}
                           className="px-2 py-1 rounded-lg text-sm transition bg-red-500 text-white">
