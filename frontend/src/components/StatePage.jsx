@@ -14,12 +14,16 @@ const StatePage = () => {
   const [itineraries, setItineraries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followLoading, setFollowLoading] = useState(false);
+
 
   useEffect(() => {
     const storedUser = localStorage.getItem("currentUser");
     if (storedUser) {
       const parsedUser = JSON.parse(storedUser);
       setUser(parsedUser);
+      checkFollowingStatus(parsedUser.Username, stateCode);
     } else {
       navigate("/");
     }
@@ -27,10 +31,9 @@ const StatePage = () => {
     const handleScroll = () => setIsScrolled(window.scrollY > 0);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [navigate]);
+  }, [navigate, stateCode]);
 
   useEffect(() => {
-    // Convert state code to full name
     const states = State.getStatesOfCountry("US");
     const state = states.find(s => s.isoCode === stateCode);
     if (state) {
@@ -54,12 +57,9 @@ const StatePage = () => {
         }
         
         const data = await response.json();
-        
-        // Handle case where itineraries is null
         const fetchedItineraries = data.itineraries || [];
         setItineraries(fetchedItineraries);
 
-        // Only fetch profile pics if we have itineraries
         if (fetchedItineraries.length > 0) {
           const pics = {};
           for (const itinerary of fetchedItineraries) {
@@ -88,6 +88,60 @@ const StatePage = () => {
 
     fetchStateItineraries();
   }, [user, stateCode]);
+
+  const checkFollowingStatus = async (username, stateCode) => {
+    try {
+      const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+      const response = await fetch("http://localhost:8080/users/follow/check", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          follower_id: currentUser.Username,
+          target_id: stateCode,
+          type: "page"
+        })
+      });
+      if (response.ok) setIsFollowing((await response.json()).isFollowing);
+    } catch (error) {
+      console.error("Error checking follow status:", error);
+    }
+  };
+
+  const handleFollowState = async () => {
+    try {
+      const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+      const response = await fetch("http://localhost:8080/users/follow", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          follower_id: currentUser.Username,
+          target_id: stateCode,
+          type: "page"
+        })
+      });
+      if (response.ok) setIsFollowing(true);
+    } catch (error) {
+      console.error("Error following user:", error);
+    }
+  };
+
+  const handleUnfollowState = async () => {
+    try {
+      const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+      const response = await fetch("http://localhost:8080/users/unfollow", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          follower_id: currentUser.Username,
+          target_id: stateCode,
+          type: "page"
+        })
+      });
+      if (response.ok) setIsFollowing(false);
+    } catch (error) {
+      console.error("Error unfollowing user:", error);
+    }
+  };
 
   const handleCreatePost = () => {
     navigate("/post");
@@ -135,7 +189,6 @@ const StatePage = () => {
       </nav>
 
       <div className="flex flex-grow mt-16">
-        {/* Left Sidebar - Fixed */}
         <div className="w-1/4 p-10 bg-[#38496a] opacity-95 space-y-8 sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto">
           <div className="p-6 bg-gradient-to-br from-[#89A8B2] to-[#4A7C88] rounded-xl shadow-lg">
             <h3 className="font-semibold mb-4 text-white text-lg border-b border-white/20 pb-2">
@@ -170,12 +223,30 @@ const StatePage = () => {
           </div>
         </div>
 
-        {/* Right Content - Scrollable */}
         <div className="w-3/4 p-6 bg-[#F1F0E8] overflow-y-auto h-[calc(100vh-4rem)]">
           <div className="flex items-center justify-between mb-6">
-            <h1 className="text-3xl text-[#4A7C88] font-bold">
-              {stateName} Itineraries
-            </h1>
+            <div className="flex items-center gap-4">
+              <h1 className="text-3xl text-[#4A7C88] font-bold">
+                {stateName} Itineraries
+              </h1>
+              {isFollowing ? (
+                <button
+                  onClick={handleUnfollowState}
+                  disabled={followLoading}
+                  className="px-4 py-1 bg-red-500 text-white font-semibold rounded-lg shadow-md hover:bg-red-600 transition text-sm disabled:opacity-50"
+                >
+                  {followLoading ? 'Processing...' : 'Unfollow'}
+                </button>
+              ) : (
+                <button
+                  onClick={handleFollowState}
+                  disabled={followLoading}
+                  className="px-4 py-1 bg-[#4A7C88] text-white font-semibold rounded-lg shadow-md hover:bg-[#38496a] transition text-sm disabled:opacity-50"
+                >
+                  {followLoading ? 'Processing...' : 'Follow'}
+                </button>
+              )}
+            </div>
             <button
               onClick={handleCreatePost}
               className="px-6 py-2 bg-[#4A7C88] text-[#ffffff] font-semibold rounded-lg shadow-md hover:bg-[#38496a] transition"

@@ -113,16 +113,16 @@ const Feeds = () => {
             </h3>
             <div className="space-y-4">
               {[
-                { name: 'California', followers: '12.4k' },
-                { name: 'New York', followers: '8.7k' },
-                { name: 'Texas', followers: '15.2k'},
-                { name: 'Colorado', followers: '5.9k' },
-                { name: 'Washington', followers: '20.1k'},
+                { name: 'California', code: 'CA', followers: '12.4k' },
+                { name: 'New York', code: 'NY', followers: '8.7k' },
+                { name: 'Texas', code: 'TX', followers: '15.2k'},
+                { name: 'Colorado', code: 'CO', followers: '5.9k' },
+                { name: 'Washington', code: 'WA', followers: '20.1k'},
               ].map((state) => (
                 <div 
-                  key={state.name}
+                  key={state.code}
                   className="flex items-center justify-between hover:bg-white/10 px-3 py-2 rounded-lg transition-all cursor-pointer"
-                  onClick={() => navigate(`/state/${state.name}`)}
+                  onClick={() => navigate(`/state/${state.code}`)}
                 >
                   <div className="flex items-center">
                     <span className="mr-3 text-xl">{state.emoji}</span>
