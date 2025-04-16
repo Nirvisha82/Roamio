@@ -22,6 +22,15 @@ const Profile = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [itineraries, setItineraries] = useState([]);
+  const [followers, setFollowers] = useState([]);
+  const [followings, setFollowings] = useState([]);
+  const [showFollowersList, setShowFollowersList] = useState(false);
+  const [showFollowingsList, setShowFollowingsList] = useState(false);
+  const [followersWithPics, setFollowersWithPics] = useState([]);
+  const [followingsWithPics, setFollowingsWithPics] = useState([]);
+
+
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -54,6 +63,37 @@ const Profile = () => {
           const itinerariesData = await itinerariesResponse.json();
           setItineraries(itinerariesData);
         }
+
+        // Fetch followers
+        const followersResponse = await fetch(`http://localhost:8080/users/followers/user/${parsedUser.Username}`);
+        if (followersResponse.ok) {
+          const followersData = await followersResponse.json();
+          setFollowers(followersData);
+
+          const enrichedFollowers = await Promise.all(
+            followersData.map(async (f) => ({
+              ...f,
+              profilePic: await fetchProfilePic(f.Username),
+            }))
+          );
+          setFollowersWithPics(enrichedFollowers);
+        }
+
+        // Fetch followings
+        const followingsResponse = await fetch(`http://localhost:8080/users/followings/${parsedUser.Username}`);
+        if (followingsResponse.ok) {
+          const followingsData = await followingsResponse.json();
+          setFollowings(followingsData);
+
+          const enrichedFollowings = await Promise.all(
+            followingsData.map(async (f) => ({
+              ...f,
+              profilePic: await fetchProfilePic(f.name),
+            }))
+          );
+          setFollowingsWithPics(enrichedFollowings);
+        }
+
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
@@ -108,6 +148,53 @@ const Profile = () => {
     }
   };
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!event.target.closest(".relative")) {
+        setShowFollowersList(false);
+        setShowFollowingsList(false);
+      }
+    };
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, []);
+
+  const fetchProfilePic = async (username) => {
+    try {
+      const response = await fetch(`http://localhost:8080/users/${username}/profile-pic`);
+      if (response.ok) {
+        const data = await response.json();
+        return data.profile_pic_url;
+      }
+    } catch (error) {
+      console.error("Error fetching profile picture for", username, error);
+    }
+    return null;
+  };
+
+  const handleUnfollowUser = async (targetUsername) => {
+    try {
+      const response = await fetch("http://localhost:8080/users/unfollow", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          follower_id: user.Username,
+          target_id: targetUsername,
+          type: "user",
+        }),
+      });
+
+      if (response.ok) {
+        // Remove unfollowed user from the list
+        setFollowings((prev) => prev.filter((f) => f.name !== targetUsername));
+        setFollowingsWithPics((prev) =>
+          prev.filter((f) => f.name !== targetUsername)
+        );
+      }
+    } catch (error) {
+      console.error("Error unfollowing user:", error);
+    }
+  };
 
   const handleFeeds = () => navigate("/feeds");
   const handleLogout = () => {
@@ -163,17 +250,83 @@ const Profile = () => {
           />
 
           {/* Followers & Following */}
-          <div className="flex flex-col space-y-1 text-[#2E5A6B] font-medium">
-            <p className="text-lg font-bold">Followers</p>
-            <p className="text-center"><span>120</span></p>
+          <div className="relative flex items-start space-x-14 text-[#2E5A6B] font-medium">
+            {/* Followers */}
+            <div className="cursor-pointer" onClick={() => {
+              setShowFollowersList(!showFollowersList);
+              setShowFollowingsList(false);
+            }}>
+              <p className="text-lg font-bold">Followers</p>
+              <p className="text-center">{followers?.length || 0}</p>
+              {showFollowersList && (
+                <div className="absolute top-16 left-0 bg-[#e5e1da88] rounded-lg shadow-lg p-4 z-40 w-64">
+                  <h3 className="font-bold text-[#2E5A6B] mb-2">Followers</h3>
+                  {followersWithPics.length === 0 ? (
+                    <p className="text-gray-600">No Followers</p>
+                  ) : (
+                    followersWithPics.map((f, idx) => (
+                      <div key={idx} className="flex items-center space-x-3 mb-3">
+                        <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-200">
+                          {f.profilePic ? (
+                            <img src={f.profilePic} alt={f.Username} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full bg-gray-300"></div>
+                          )}
+                        </div>
+                        <span>{f.Username}</span>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Following */}
+            <div className="cursor-pointer" onClick={() => {
+              setShowFollowingsList(!showFollowingsList);
+              setShowFollowersList(false);
+            }}>
+              <p className="text-lg font-bold">Following</p>
+              <p className="text-center">{followings?.length || 0}</p>
+              {showFollowingsList && (
+                <div className="absolute top-16 left-25 bg-[#e5e1da88] rounded-lg shadow-lg p-4 z-40 w-64">
+                  <h3 className="font-bold text-[#2E5A6B] mb-2">Following</h3>
+                  {followingsWithPics.length === 0 ? (
+                    <p className="text-gray-600">No User Followed</p>
+                  ) : (
+                    followingsWithPics.map((f, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-center justify-between space-x-3 mb-3"
+                      >
+                        <div className="flex items-center space-x-3">
+                          <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-200">
+                            {f.profilePic ? (
+                              <img
+                                src={f.profilePic}
+                                alt={f.name}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-gray-300"></div>
+                            )}
+                          </div>
+                          <span>{f.name}</span>
+                        </div>
+                        <button onClick={() => handleUnfollowUser(f.name)}
+                          className="px-2 py-1 rounded-lg text-sm transition bg-red-500 text-white">
+                          Unfollow
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+
+            </div>
           </div>
-          <div className="flex flex-col space-y-1 text-[#2E5A6B] font-medium">
-            <p className="text-lg font-bold">Following</p>
-            <p className="text-center"><span>85</span></p>
-          </div>
+
         </div>
-
-
 
         {/* User Details Section */}
         <div className="mb-8">
