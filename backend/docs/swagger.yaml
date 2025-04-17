@@ -59,13 +59,15 @@ definitions:
     type: object
   models.Following:
     properties:
+      code:
+        description: Code is optional
+        type: string
       id:
-        example: 2
         type: integer
       name:
-        example: cooldude
         type: string
       type:
+        description: '"user" or "page"'
         type: string
     type: object
   models.IsFollowingRequest:
@@ -499,6 +501,39 @@ paths:
           schema:
             $ref: '#/definitions/models.ErrorResponse'
       summary: Get itineraries by state ID
+      tags:
+      - itineraries
+  /itineraries/top-states:
+    get:
+      description: Retrieve top K states based on number of followers (pages).
+      parameters:
+      - description: Number of top states to retrieve
+        in: query
+        name: k
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of top states with follower count
+          schema:
+            items:
+              type: object
+            type: array
+        "400":
+          description: '{"error":"Invalid or missing ''k'' query parameter"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: '{"error":"Internal server error"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get top K states by followers
       tags:
       - itineraries
   /itineraries/user/{userID}:

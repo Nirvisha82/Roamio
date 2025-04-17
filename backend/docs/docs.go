@@ -365,6 +365,56 @@ const docTemplate = `{
                 }
             }
         },
+        "/itineraries/top-states": {
+            "get": {
+                "description": "Retrieve top K states based on number of followers (pages).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "itineraries"
+                ],
+                "summary": "Get top K states by followers",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Number of top states to retrieve",
+                        "name": "k",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of top states with follower count",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "object"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "{\"error\":\"Invalid or missing 'k' query parameter\"}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "{\"error\":\"Internal server error\"}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/itineraries/user/{userID}": {
             "get": {
                 "description": "Retrieve all itineraries created by a specific user.",
@@ -919,15 +969,18 @@ const docTemplate = `{
         "models.Following": {
             "type": "object",
             "properties": {
+                "code": {
+                    "description": "Code is optional",
+                    "type": "string"
+                },
                 "id": {
-                    "type": "integer",
-                    "example": 2
+                    "type": "integer"
                 },
                 "name": {
-                    "type": "string",
-                    "example": "cooldude"
+                    "type": "string"
                 },
                 "type": {
+                    "description": "\"user\" or \"page\"",
                     "type": "string"
                 }
             }
