@@ -259,18 +259,18 @@ const Profile = () => {
               <p className="text-lg font-bold">Followers</p>
               <p className="text-center">{followers?.length || 0}</p>
               {showFollowersList && (
-                <div className="absolute top-16 left-0 bg-[#e5e1da88] rounded-lg shadow-lg p-4 z-40 w-64">
+                <div className="absolute top-16 left-0 bg-[#e5e1da88] rounded-lg shadow-lg p-4 z-40 w-64 ">
                   <h3 className="font-bold text-[#2E5A6B] mb-2">Followers</h3>
                   {followersWithPics.length === 0 ? (
                     <p className="text-gray-600">No Followers</p>
                   ) : (
                     followersWithPics.map((f, idx) => (
                       <div key={idx} className="flex items-center space-x-3 mb-3">
-                        <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-200">
+                        <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-200 ">
                           {f.profilePic ? (
                             <img src={f.profilePic} alt={f.Username} className="w-full h-full object-cover" />
                           ) : (
-                            <div className="w-full h-full bg-gray-300"></div>
+                            <div className="w-full h-full bg-gray-300 "></div>
                           )}
                         </div>
                         <span onClick={() => navigate(`/userprofile/${f.Username}`)}>{f.Username}</span>
@@ -311,7 +311,17 @@ const Profile = () => {
                               <div className="w-full h-full bg-gray-300"></div>
                             )}
                           </div>
-                          <span onClick={() => navigate(`/userprofile/${f.name}`)}>{f.name}</span>
+                          <span
+                            onClick={() => {
+                              if (f.type === "user") {
+                                navigate(`/userprofile/${f.name}`);
+                              } else if (f.type === "page") {
+                                navigate(`/state/${f.code}`);
+                              }
+                            }}
+                          >
+                            {f.name}
+                          </span>
                         </div>
                         <button onClick={() => handleUnfollowUser(f.name)}
                           className="px-2 py-1 rounded-lg text-sm transition bg-red-500 text-white">

@@ -285,7 +285,15 @@ const FullPost = () => {
         <div className="w-1/4 p-10 bg-[#38496a] opacity-95 text-white flex flex-col items-center">
           <h2 className="text-xl font-semibold mb-4">Profile</h2>
           <img src={profilePicUrl} alt="Profile" className="w-24 h-24 rounded-full object-cover" />
-          <p className="text-lg font-semibold mt-2">{post.username}</p>
+          <p className="text-lg font-semibold mt-2 cursor-pointer hover:text-blue-500"
+            onClick={() => {
+              if (user?.Username === post.username) {
+                navigate(`/myprofile/${user.Username}`);
+              } else {
+                navigate(`/userprofile/${post.username}`);
+              }
+            }}
+          >{post.username}</p>
           {!isOwnPost && (
             <div className="mt-4">
               {isFollowing ? (

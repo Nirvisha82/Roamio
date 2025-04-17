@@ -14,6 +14,10 @@ const UserProfile = () => {
     const [followings, setFollowings] = useState([]);
     const [isFollowing, setIsFollowing] = useState(false);
     const [isOwnProfile, setIsOwnProfile] = useState(false);
+    const [showFollowersList, setShowFollowersList] = useState(false);
+    const [showFollowingsList, setShowFollowingsList] = useState(false);
+    const [followersWithPics, setFollowersWithPics] = useState([]);
+    const [followingsWithPics, setFollowingsWithPics] = useState([]);
 
 
     const fetchProfilePic = async (username) => {
@@ -82,61 +86,69 @@ const UserProfile = () => {
 
     useEffect(() => {
         const fetchData = async () => {
-            try {
-                const allUsersRes = await fetch(`http://localhost:8080/users`);
-                if (!allUsersRes.ok) {
-                    console.error("Failed to fetch users");
-                    return;
-                }
-                const users = await allUsersRes.json();
-                const userData = users.find((u) => u.Username === username);
-                if (!userData) {
-                    console.error("User not found");
-                    return;
-                }
-                setUser(userData);
-
-                const pic = await fetchProfilePic(username);
-                setProfileImage(pic);
-
-                const currentUser = JSON.parse(localStorage.getItem("currentUser"));
-                if (currentUser?.Username === userData.Username) {
-                    setIsOwnProfile(true);
-                } else {
-                    setIsOwnProfile(false);
-                    await checkFollowStatus(currentUser.Username, userData.Username);
-                }
-
-
-                const itinerariesRes = await fetch(`http://localhost:8080/itineraries/user/${userData.ID}`);
-                if (itinerariesRes.ok) {
-                    const itinerariesData = await itinerariesRes.json();
-                    setItineraries(itinerariesData);
-                }
-                // Fetch followers
-                const followersResponse = await fetch(`http://localhost:8080/users/followers/user/${userData.Username}`);
-                if (followersResponse.ok) {
-                    const followersData = await followersResponse.json();
-                    setFollowers(followersData);
-                }
-
-                // Fetch followings
-                const followingsResponse = await fetch(`http://localhost:8080/users/followings/${userData.Username}`);
-                if (followingsResponse.ok) {
-                    const followingsData = await followingsResponse.json();
-                    setFollowings(followingsData);
-                }
-
-
-            } catch (error) {
-                console.error("Failed to fetch user profile:", error);
-            } finally {
-                setLoading(false);
+          try {
+            const allUsersRes = await fetch(`http://localhost:8080/users`);
+            const users = await allUsersRes.json();
+            const userData = users.find((u) => u.Username === username);
+            if (!userData) return;
+            setUser(userData);
+      
+            const pic = await fetchProfilePic(username);
+            setProfileImage(pic);
+      
+            const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+            if (currentUser?.Username === userData.Username) {
+              setIsOwnProfile(true);
+            } else {
+              setIsOwnProfile(false);
+              await checkFollowStatus(currentUser.Username, userData.Username);
             }
+      
+            const itinerariesRes = await fetch(`http://localhost:8080/itineraries/user/${userData.ID}`);
+            if (itinerariesRes.ok) {
+              const itinerariesData = await itinerariesRes.json();
+              setItineraries(itinerariesData);
+            }
+      
+            // Fetch followers
+            const followersResponse = await fetch(`http://localhost:8080/users/followers/user/${userData.Username}`);
+            if (followersResponse.ok) {
+              const followersData = await followersResponse.json();
+              setFollowers(followersData);
+      
+              const enrichedFollowers = await Promise.all(
+                followersData.map(async (f) => ({
+                  ...f,
+                  profilePic: await fetchProfilePic(f.Username)
+                }))
+              );
+              setFollowersWithPics(enrichedFollowers);
+            }
+      
+            // Fetch followings
+            const followingsResponse = await fetch(`http://localhost:8080/users/followings/${userData.Username}`);
+            if (followingsResponse.ok) {
+              const followingsData = await followingsResponse.json();
+              setFollowings(followingsData);
+      
+              const enrichedFollowings = await Promise.all(
+                followingsData.map(async (f) => ({
+                  ...f,
+                  profilePic: await fetchProfilePic(f.name)
+                }))
+              );
+              setFollowingsWithPics(enrichedFollowings);
+            }
+      
+          } catch (error) {
+            console.error("Failed to fetch user profile:", error);
+          } finally {
+            setLoading(false);
+          }
         };
-
+      
         fetchData();
-    }, [username]);
+      }, [username]);
 
     const handleFeeds = () => navigate("/feeds");
     const handleMyProfile = () => {
@@ -210,13 +222,85 @@ const UserProfile = () => {
 
                     {/* Followers & Following */}
                     <div className="relative flex items-start space-x-14 text-[#2E5A6B] font-medium">
-                        <div className="ml-36 flex flex-col space-y-1 text-[#2E5A6B] font-medium">
-                            <p className="text-lg font-bold">Followers</p>
-                            <p className="text-center"><span>{followers?.length || 0}</span></p>
+                        {/* Followers */}
+                        <div className="flex flex-col space-y-1 text-[#2E5A6B] font-medium cursor-pointer relative"
+                            onClick={() => {
+                            setShowFollowersList(!showFollowersList);
+                            setShowFollowingsList(false);
+                            }}
+                        >
+                            <p className="text-lg font-bold text-center">Followers</p>
+                            <p className="text-center">{followers?.length || 0}</p>
+
+                            {showFollowersList && (
+  <div className="absolute top-16 left-0 bg-[#e5e1da88] rounded-lg shadow-lg p-4 z-40 w-64">
+    <h3 className="font-bold text-[#2E5A6B] mb-2">Followers</h3>
+    {followersWithPics.length === 0 ? (
+      <p className="text-gray-600">No Followers</p>
+    ) : (
+      followersWithPics.map((f, idx) => (
+        <div key={idx} className="flex items-center space-x-3 mb-3">
+          <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-200">
+            {f.profilePic ? (
+              <img src={f.profilePic} alt={f.Username} className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full bg-gray-300"></div>
+            )}
+          </div>
+          <span
+            onClick={() => navigate(`/userprofile/${f.Username}`)}
+            className="cursor-pointer"
+          >
+            {f.Username}
+          </span>
+        </div>
+      ))
+    )}
+  </div>
+)}
                         </div>
-                        <div className="flex flex-col space-y-1 text-[#2E5A6B] font-medium">
-                            <p className="text-lg font-bold">Following</p>
-                            <p className="text-center"><span>{followings?.length || 0}</span></p>
+                        {/* Following */}
+                        <div className="flex flex-col space-y-1 text-[#2E5A6B] font-medium cursor-pointer relative"
+                            onClick={() => {
+                            setShowFollowingsList(!showFollowingsList);
+                            setShowFollowersList(false);
+                            }}
+                        >
+                            <p className="text-lg font-bold text-center">Following</p>
+                            <p className="text-center">{followings?.length || 0}</p>
+
+                            {showFollowingsList && (
+  <div className="absolute top-16 left-0 bg-[#e5e1da88] rounded-lg shadow-lg p-4 z-40 w-64">
+    <h3 className="font-bold text-[#2E5A6B] mb-2">Following</h3>
+    {followingsWithPics.length === 0 ? (
+      <p className="text-gray-600">Not following anyone yet</p>
+    ) : (
+      followingsWithPics.map((f, idx) => (
+        <div key={idx} className="flex items-center space-x-3 mb-3">
+          <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-200">
+            {f.profilePic ? (
+              <img src={f.profilePic} alt={f.name} className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full bg-gray-300"></div>
+            )}
+          </div>
+          <span
+            onClick={() => {
+              if (f.type === "user") {
+                navigate(`/userprofile/${f.name}`);
+              } else if (f.type === "page") {
+                navigate(`/state/${f.code}`);
+              }
+            }}
+            className="cursor-pointer"
+          >
+            {f.name}
+          </span>
+        </div>
+      ))
+    )}
+  </div>
+)}
                         </div>
                     </div>
 
