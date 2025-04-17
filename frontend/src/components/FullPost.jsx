@@ -2,10 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import logo from "../images/logo.png";
-import profilePic1 from "../images/team1.jpg";
-import profilePic2 from "../images/team2.jpg";
-import profilePic3 from "../images/team3.jpg";
-import profilePic4 from "../images/team4.jpg";
+import profilePic1 from "../images/default.jpg";
 import Slider from "react-slick";
 
 const FullPost = () => {
@@ -13,8 +10,7 @@ const FullPost = () => {
   const navigate = useNavigate();
   const [error, setError] = useState(null);
   const [user, setUser] = useState(null);
-  const [profilePicUrl, setProfilePicUrl] = useState("");
-
+  const [profilePicUrl, setProfilePicUrl] = useState(null);
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
   const [isFollowing, setIsFollowing] = useState(false);
@@ -29,7 +25,7 @@ const FullPost = () => {
     localStorage.removeItem("currentUser");
     navigate("/");
   };
-  
+
   // following related.
   const toggleFollow = () => {
     setIsFollowing(!isFollowing);
@@ -44,47 +40,84 @@ const FullPost = () => {
           navigate("/");
           return;
         }
+
         const parsedUser = JSON.parse(sessionUser);
         setUser(parsedUser);
-  
-        const postResponse = await fetch(
-          `http://localhost:8080/itineraries/post/${postId}`
-        );
-        if (!postResponse.ok) {
-          throw new Error(`HTTP error! status: ${postResponse.status}`);
-        }
+
+        // Fetch the post
+        const postResponse = await fetch(`http://localhost:8080/itineraries/post/${postId}`);
+        if (!postResponse.ok) throw new Error(`HTTP error! status: ${postResponse.status}`);
         const postData = await postResponse.json();
         setPost(postData);
-  
-        const profilePicResponse = await fetch(
-          `http://localhost:8080/users/${postData.username}/profile-pic`
-        );
+
+        // Post creator's profile pic
+        const profilePicResponse = await fetch(`http://localhost:8080/users/${postData.username}/profile-pic`);
         const profilePicData = await profilePicResponse.json();
         setProfilePicUrl(profilePicData.profile_pic_url);
-  
-        const commentsResponse = await fetch(
-          `http://localhost:8080/comments/${postId}`
-        );
-        if (!commentsResponse.ok) {
-          throw new Error(`HTTP error! status: ${commentsResponse.status}`);
-        }
+
+        // Comments
+        const commentsResponse = await fetch(`http://localhost:8080/comments/${postId}`);
+        if (!commentsResponse.ok) throw new Error(`HTTP error! status: ${commentsResponse.status}`);
         const commentsData = await commentsResponse.json();
-        setComments(commentsData.comments);
+
+        // All users
+        const usersResponse = await fetch("http://localhost:8080/users");
+        if (!usersResponse.ok) throw new Error("Failed to fetch users");
+        const users = await usersResponse.json();
+
+        // Build map
+        const userMap = {};
+        users.forEach((user) => {
+          userMap[user.ID] = user;
+        });
+
+        // Enrich comments with user
+        const commentsWithUser = commentsData.comments.map((comment) => ({
+          ...comment,
+          user: userMap[comment.UserId || comment.userId],
+        }));
+
+        // Fetch profile pic for each comment user
+        const commentsWithPics = await Promise.all(
+          commentsWithUser.map(async (comment) => {
+            let profilePicUrl = null;
+            if (comment.user?.Username) {
+              try {
+                const picRes = await fetch(`http://localhost:8080/users/${comment.user.Username}/profile-pic`);
+                if (picRes.ok) {
+                  const picData = await picRes.json();
+                  profilePicUrl = picData.profile_pic_url;
+                }
+              } catch (e) {
+                console.error(`Failed to fetch profile pic for ${comment.user.Username}`, e);
+              }
+            }
+            return {
+              ...comment,
+              user: {
+                ...comment.user,
+                profile_pic_url: profilePicUrl,
+              },
+            };
+          })
+        );
+
+        setComments(commentsWithPics);
       } catch (error) {
         console.error("Error fetching data:", error);
         setError(error.message);
       }
     };
-  
+
     fetchPostAndComments();
-  }, [postId, navigate]); 
+  }, [postId, navigate]);
 
   const addComment = async () => {
     if (!newComment.trim()) return;
 
     try {
       const currentUser = JSON.parse(localStorage.getItem("currentUser"));
-      
+
       const commentData = {
         userId: currentUser.ID,
         postId: parseInt(postId),
@@ -103,48 +136,68 @@ const FullPost = () => {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      // Assuming the backend returns the newly created comment
-      const newCommentFromServer = await response.json();
-      
-      // If backend returns the comment in the same format as GET request
-      if (newCommentFromServer.ID) {
-        setComments(prevComments => [...prevComments, newCommentFromServer]);
-      } else {
-        // Fallback: manually construct the comment object
-        const constructedComment = {
-          ID: Date.now(), // Temporary ID until we get the real one
-          UserId: commentData.userId,
-          PostId: commentData.postId,
-          Description: commentData.description
-        };
-        setComments(prevComments => [...prevComments, constructedComment]);
-        
-        // Optionally refetch all comments to get the proper ID
-        const updatedCommentsResponse = await fetch(
-          `http://localhost:8080/comments/${postId}`
-        );
-        const updatedCommentsData = await updatedCommentsResponse.json();
-        setComments(updatedCommentsData.comments);
+      // Re-fetch all comments to get full data including usernames and profile pics
+      const updatedCommentsResponse = await fetch(`http://localhost:8080/comments/${postId}`);
+      if (!updatedCommentsResponse.ok) {
+        throw new Error(`Failed to fetch updated comments`);
       }
-      
-      setNewComment(""); // Clear the input field
+      const updatedCommentsData = await updatedCommentsResponse.json();
+
+      // Fetch all users
+      const usersResponse = await fetch("http://localhost:8080/users");
+      const users = await usersResponse.json();
+      const userMap = {};
+      users.forEach((user) => {
+        userMap[user.ID] = user;
+      });
+
+      // Enrich each comment with user info and profile pic
+      const enrichedComments = await Promise.all(
+        updatedCommentsData.comments.map(async (comment) => {
+          const commentUser = userMap[comment.UserId || comment.userId];
+          let profilePicUrl = null;
+          if (commentUser?.Username) {
+            try {
+              const picRes = await fetch(`http://localhost:8080/users/${commentUser.Username}/profile-pic`);
+              if (picRes.ok) {
+                const picData = await picRes.json();
+                profilePicUrl = picData.profile_pic_url;
+              }
+            } catch (e) {
+              console.error(`Failed to fetch profile pic for ${commentUser.Username}`, e);
+            }
+          }
+
+          return {
+            ...comment,
+            user: {
+              ...commentUser,
+              profile_pic_url: profilePicUrl
+            }
+          };
+        })
+      );
+
+      setComments(enrichedComments);
+      setNewComment(""); // Clear input field
 
     } catch (error) {
       console.error("Error posting comment:", error);
       setError(error.message);
     }
-  }
-    useEffect(() => {
-      if (post && user) {
-        const currentUser = JSON.parse(localStorage.getItem("currentUser"));
-        const isOwner = currentUser.ID === post.UserID;
-        setIsOwnPost(isOwner);
-        
-        if (!isOwner) {
-          checkFollowStatus();
-        }
+  };
+
+  useEffect(() => {
+    if (post && user) {
+      const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+      const isOwner = currentUser.ID === post.UserID;
+      setIsOwnPost(isOwner);
+
+      if (!isOwner) {
+        checkFollowStatus();
       }
-    }, [post, user]);
+    }
+  }, [post, user]);
 
   // Follow/Unfollow handlers
   const checkFollowStatus = async () => {
@@ -237,13 +290,13 @@ const FullPost = () => {
             <div className="mt-4">
               {isFollowing ? (
 
-                <button onClick={handleUnfollow} 
-                className="mt-3 px-6 py-2 rounded-lg font-semibold transition bg-red-500 text-white">
+                <button onClick={handleUnfollow}
+                  className="mt-3 px-6 py-2 rounded-lg font-semibold transition bg-red-500 text-white">
                   Unfollow -
                 </button>
               ) : (
-                <button onClick={handleFollow} 
-                className="mt-3 px-6 py-2 rounded-lg font-semibold transition bg-[#4A7C88] text-white hover:bg-[#4a7c8876]">
+                <button onClick={handleFollow}
+                  className="mt-3 px-6 py-2 rounded-lg font-semibold transition bg-[#4A7C88] text-white hover:bg-[#4a7c8876]">
                   Follow +
                 </button>
               )}
@@ -284,10 +337,21 @@ const FullPost = () => {
             <h2 className="text-xl font-semibold text-[#4A7C88]">Comments</h2>
             <div className="mt-4">
               {comments.map((comment) => (
-                <div key={comment.ID} className="p-3 bg-white rounded-lg shadow-md mb-2">
-                  <p className="text-gray-800">{comment.Description}</p>
+                <div key={comment.ID} className="p-3 bg-white rounded-lg shadow-md mb-2 flex items-center space-x-4">
+                  <img
+                    src={comment.user?.profile_pic_url || profilePic1} // fallback image
+                    alt="User"
+                    className="w-10 h-10 rounded-full object-cover"
+                  />
+                  <div>
+                    <p className="text-sm font-semibold text-[#4A7C88]">
+                      {comment.user?.Username || "Unknown User"}
+                    </p>
+                    <p className="text-gray-800">{comment.Description}</p>
+                  </div>
                 </div>
               ))}
+
             </div>
 
             <div className="mt-4">
