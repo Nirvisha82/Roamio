@@ -8,6 +8,7 @@ import (
 	"roamio/backend/api/services"
 	_ "roamio/backend/docs"
 	"roamio/backend/models"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -234,4 +235,41 @@ func GetItineraryByPostId(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, response)
+}
+
+// @Summary Get top K states by followers
+// @Description Retrieve top K states based on number of followers (pages).
+// @Tags itineraries
+// @Produce json
+// @Param k query int true "Number of top states to retrieve"
+// @Success 200 {array} object "List of top states with follower count"
+// @Failure 400 {object} map[string]string "{"error":"Invalid or missing 'k' query parameter"}"
+// @Failure 500 {object} map[string]string "{"error":"Internal server error"}"
+// @Router /itineraries/top-states [get]
+func GetTopKStatesByFollowers(c *gin.Context) {
+	database, err := api.DatabaseConnection()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database connection failed"})
+		return
+	}
+
+	kStr := c.Query("k")
+	if kStr == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing 'k' query parameter"})
+		return
+	}
+
+	k, err := strconv.Atoi(kStr)
+	if err != nil || k <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid 'k' query parameter"})
+		return
+	}
+
+	topStates, err := services.TopKStatesByFollowers(database, k)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve top states"})
+		return
+	}
+
+	c.JSON(http.StatusOK, topStates)
 }

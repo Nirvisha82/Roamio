@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"os"
+	"roamio/backend/api"
 	"roamio/backend/api/handlers"
 
 	swaggerFiles "github.com/swaggo/files"
@@ -21,7 +22,7 @@ import (
 // @host localhost:8080
 
 func main() {
-
+	api.InitDatabase()
 	err := godotenv.Load()
 	if err != nil {
 		log.Println("Warning: No .env file found")
@@ -49,6 +50,7 @@ func main() {
 	router.GET("/itineraries/user/:userID", handlers.GetItineraryByUserId)
 	router.GET("/itineraries/state/:statecode", handlers.GetItineraryByStateId)
 	router.GET("/itineraries/post/:postID", handlers.GetItineraryByPostId)
+	router.GET("/itineraries/top-states", handlers.GetTopKStatesByFollowers)
 
 	// User related
 	router.GET("/users", handlers.GetAllUsers)
