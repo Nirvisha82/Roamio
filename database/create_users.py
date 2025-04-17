@@ -12,9 +12,16 @@ fake = Faker()
 users = []
 
 IMAGE_URLS = [
-    "https://images.unsplash.com/photo-1506744038136-46273834b3fb",
-    "https://images.unsplash.com/photo-1494526585095-c41746248156",
-    "https://images.unsplash.com/photo-1558980664-10ea76351b5d"
+    "https://images.unsplash.com/photo-1502685104226-ee32379fefbe",  # Woman with sunglasses
+    "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e",  # Smiling girl
+    "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde",  # Bearded man
+    "https://images.unsplash.com/photo-1544005313-94ddf0286df2",     # Laughing woman
+    "https://images.unsplash.com/photo-1520813792240-56fc4a3765a7",  # Guy in hoodie
+    "https://images.unsplash.com/photo-1531123897727-8f129e1688ce",  # Woman with glasses
+    "https://images.unsplash.com/photo-1546456073-6712f79251bb",     # Stylish man
+    "https://images.unsplash.com/photo-1524504388940-b1c1722653e1",  # Studio portrait
+    "https://images.unsplash.com/photo-1544725176-7c40e5a2c9f3",     # Smiling middle-aged man
+    "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d"   # Casual young man
 ]
 
 # Step 1: Register Users
