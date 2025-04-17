@@ -223,7 +223,7 @@ const UserProfile = () => {
                     {/* Followers & Following */}
                     <div className="relative flex items-start space-x-14 text-[#2E5A6B] font-medium">
                         {/* Followers */}
-                        <div className="flex flex-col space-y-1 text-[#2E5A6B] font-medium cursor-pointer relative"
+                        <div className="flex ml-36 flex-col space-y-1 text-[#2E5A6B] font-medium cursor-pointer relative"
                             onClick={() => {
                             setShowFollowersList(!showFollowersList);
                             setShowFollowingsList(false);
