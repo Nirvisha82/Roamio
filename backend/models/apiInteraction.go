@@ -74,12 +74,6 @@ type Follower struct {
 	FullName string `json:"full_name" example:"John Doe"`
 }
 
-type Following struct {
-	ID       uint   `json:"id" example:"2"`
-	FullName string `json:"name" example:"cooldude"`
-	Type     string `json:type example:"user"`
-}
-
 type CreateItineraryRequest struct {
 	Title     string `json:"title" binding:"required" example:"Trip to Florida"`
 	UserID    uint   `json:"user_id" binding:"required" example:"1"`
