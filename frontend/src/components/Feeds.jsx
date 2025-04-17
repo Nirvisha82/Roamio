@@ -3,7 +3,9 @@ import { useNavigate } from "react-router-dom";
 import Select from "react-select";
 import { State } from "country-state-city";
 import logo from "../images/logo.png";
-import profilePic1 from "../images/team1.jpg";
+import profilePic from "../images/default.jpg";
+import config from "../config"; // Adjust path if needed
+
 
 const Feeds = () => {
   const navigate = useNavigate();
@@ -12,6 +14,7 @@ const Feeds = () => {
   const [user, setUser] = useState(null);
   const [profilePics, setProfilePics] = useState({});
   const [itineraries, setItineraries] = useState([]);
+  const [trendingStates,setTrendingStates] = useState([]);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("currentUser");
@@ -61,6 +64,19 @@ const Feeds = () => {
     fetchItineraries();
   }, [user]);
 
+  useEffect(()=>{
+    const fetchTrendingStates=async()=>{
+      try {
+        const response = await fetch(`http://localhost:8080/itineraries/top-states?k=${config.TRENDING_STATES_LIMIT}`);
+        if (!response.ok) throw new Error('Failed to fetch itineraries');
+        const data = await response.json();
+        setTrendingStates(data);
+      } catch (error) {
+        console.error("Error fetching itineraries:", error);
+      }
+    }
+    fetchTrendingStates();
+  },[]);
   
   const handleCreatePost = () => {
     navigate("/post");
@@ -112,23 +128,17 @@ const Feeds = () => {
               Trending States
             </h3>
             <div className="space-y-4">
-              {[
-                { name: 'California', followers: '12.4k' },
-                { name: 'New York', followers: '8.7k' },
-                { name: 'Texas', followers: '15.2k'},
-                { name: 'Colorado', followers: '5.9k' },
-                { name: 'Washington', followers: '20.1k'},
-              ].map((state) => (
+              {trendingStates.map((state) => (
                 <div 
-                  key={state.name}
+                  key={state.state_code}
                   className="flex items-center justify-between hover:bg-white/10 px-3 py-2 rounded-lg transition-all cursor-pointer"
-                  onClick={() => navigate(`/state/${state.name}`)}
+                  onClick={() => navigate(`/state/${state.state_code}`)}
                 >
                   <div className="flex items-center">
                     <span className="mr-3 text-xl">{state.emoji}</span>
                     <div>
-                      <p className="font-medium">{state.name}</p>
-                      <p className="text-xs text-white/80">{state.followers} followers</p>
+                      <p className="font-medium">{state.state_name}</p>
+                      <p className="text-xs text-white/80">{state.follower_count} followers</p>
                     </div>
                   </div>
                   <button className="text-xs bg-white/20 hover:bg-white/30 px-3 py-1 rounded-full transition">
@@ -188,7 +198,7 @@ const Feeds = () => {
                     <div className="flex items-center space-x-2">
                       <span className="text-sm font-sm text-gray-400">{itinerary.username}</span>
                       <img 
-                        src={profilePics[itinerary.username] || profilePic1} 
+                        src={profilePics[itinerary.username] || profilePic} 
                         alt="Profile" 
                         className="w-7 h-7 rounded-full object-cover" 
                       />
