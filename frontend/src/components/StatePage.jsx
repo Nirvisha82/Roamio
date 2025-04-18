@@ -93,13 +93,16 @@ const StatePage = () => {
             <nav className="flex justify-between items-center p-5 bg-[#38496a] shadow-md h-16 fixed top-0 w-full z-50">
                 <img src={logo} alt="Roamio Logo" className="h-12 w-auto" />
                 <div className="flex space-x-6">
-                    <button className="text-white hover:text-[#89A8B2]" onClick={handleFeeds}>
+                    <button className="text-white hover:text-[#89A8B2]" onClick={handleFeeds} 
+                      data-testid="feed-button">
                         Feed
                     </button>
-                    <button className="text-white hover:text-[#89A8B2]" onClick={handleMyProfile}>
+                    <button className="text-white hover:text-[#89A8B2]" onClick={handleMyProfile}
+                      data-testid="profile-button">
                         My Profile
                     </button>
-                    <button className="text-white hover:text-[#89A8B2]" onClick={handleLogout}>
+                    <button className="text-white hover:text-[#89A8B2]" onClick={handleLogout} 
+                      data-testid="logout-button">
                         Logout
                     </button>
                 </div>
@@ -153,6 +156,7 @@ const StatePage = () => {
                                 <button
                                     onClick={handleFollowState}
                                     className="px-4 py-1 bg-[#4A7C88] text-white font-semibold rounded-lg shadow-md hover:bg-[#38496a] transition text-sm"
+                                    data-testid="follow-button"
                                 >
                                     Follow
                                 </button>
