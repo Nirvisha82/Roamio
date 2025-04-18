@@ -5,6 +5,7 @@ import LandingPage from "./components/LandingPage";
 import Feeds from "./components/Feeds";
 import PostForm from "./components/PostForm";
 import MyProfile from "./components/MyProfile";
+import UserProfile from "./components/UserProfile";
 import FullPost from "./components/FullPost";
 import StatePage from "./components/StatePage";
 
@@ -17,6 +18,7 @@ function App() {
         <Route path="/post" element={<PostForm />} />
         <Route path="/post/:postId" element={<FullPost />} />
          <Route path="/myprofile" element={<MyProfile />} />
+         <Route path="/userprofile/:username" element={<UserProfile />} />
          <Route path="/state/:stateCode" element={<StatePage />} />
       </Routes>
     </Router>

@@ -59,10 +59,8 @@ describe("Sidebar", () => {
     expect(trendingState).toBeInTheDocument();
 
     const california = screen.getByText(/California/i);
-    const colorado = screen.getByText(/Colorado/i);
 
     expect(california).toBeInTheDocument();
-    expect(colorado).toBeInTheDocument();
   });
 
   test("clicking a state navigates to state page", () => {

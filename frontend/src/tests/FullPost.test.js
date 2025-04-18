@@ -129,6 +129,20 @@ describe("Comments Section", () => {
     expect(screen.getByText(/I love this itinerary, thanks for sharing!/i)).toBeInTheDocument();
   });
 
+  test("renders username and profile picture for each comment", () => {
+    render(
+      <Router>
+        <FullPost />
+      </Router>
+    );
+  
+    const usernames = screen.getAllByText("Jane_Doe");
+    const profilePics = screen.getAllByAltText("User");
+
+    expect(usernames.length).toBeGreaterThanOrEqual(2);
+    expect(profilePics.length).toBeGreaterThanOrEqual(2);
+  });
+  
   test("allows user to add a new comment", () => {
     render(
       <Router>

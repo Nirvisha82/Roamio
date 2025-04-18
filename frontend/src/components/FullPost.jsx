@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import logo from "../images/logo.png";
 import profilePic from "../images/team1.jpg";
+import profilePic1 from "../images/team2.jpg";
 import Slider from "react-slick";
 import postPic1 from "../images/post1.jpg";
 import postPic2 from "../images/post2.jpg";
@@ -102,12 +103,23 @@ const FullPost = () => {
           <div className="mt-6">
             <h2 className="text-xl font-semibold text-[#4A7C88]">Comments</h2>
             <div className="mt-4">
-              {comments.map((comment) => (
-                <div key={comment.ID} className="p-3 bg-white rounded-lg shadow-md mb-2">
-                  <p className="text-gray-800">{comment.Description}</p>
+            {comments.map((comment) => (
+                <div key={comment.ID} className="p-3 bg-white rounded-lg shadow-md mb-2 flex items-center space-x-4">
+                  <img
+                    src={profilePic1} 
+                    alt="User"
+                    className="w-10 h-10 rounded-full object-cover"
+                  />
+                  <div>
+                    <p className="text-sm font-semibold text-[#4A7C88]">
+                      {"Jane_Doe"}
+                    </p>
+                    <p className="text-gray-800">{comment.Description}</p>
+                  </div>
                 </div>
               ))}
             </div>
+            
 
             <div className="mt-4">
               <textarea className="w-full p-2 border rounded-lg" placeholder="Write a comment..." value={newComment} onChange={(e) => setNewComment(e.target.value)}></textarea>

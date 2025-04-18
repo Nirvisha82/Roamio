@@ -22,8 +22,8 @@ describe('Feed Search and Trending States Tests', () => {
     });
 
     it('should navigate to state itinerary post when clicking trending states', () => {
-        cy.contains('8.7k followers').click();
-        cy.url().should('include', '/state/New%20York');
+        cy.contains('95 followers').click();
+        cy.url().should('include', '/state/NY');
       });
   });
   

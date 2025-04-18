@@ -6,15 +6,27 @@ import logo from "../images/logo.png";
 import profilePic1 from "../images/team4.jpg";
 import profilePic2 from "../images/team1.jpg";
 
+const mockTrendingStates = [
+  { state_code: "CA", state_name: "California", follower_count: 120 },
+  { state_code: "NY", state_name: "New York", follower_count: 95 },
+  { state_code: "TX", state_name: "Texas", follower_count: 80 },
+];
+
 const Feeds = () => {
   const navigate = useNavigate();
   const [selectedState, setSelectedState] = useState(null);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [trendingStates, setTrendingStates] = useState([]);
+
+  useEffect(() => {
+    setTrendingStates(mockTrendingStates);
+  }, []);
+
   const [user, setUser] = useState({
     Username: "john_doe"
   });
   const [profilePics, setProfilePics] = useState({
-    john_doe: profilePic1, 
+    john_doe: profilePic1,
     jane_doe: profilePic2,
   });
   const [itineraries, setItineraries] = useState([
@@ -79,23 +91,19 @@ const Feeds = () => {
               Trending States
             </h3>
             <div className="space-y-4">
-              {[ 
-                { name: 'California', followers: '12.4k' },
-                { name: 'New York', followers: '8.7k' },
-                { name: 'Texas', followers: '15.2k'},
-                { name: 'Colorado', followers: '5.9k' },
-                { name: 'Washington', followers: '20.1k'},
-              ].map((state) => (
+              {trendingStates.map((state) => (
                 <div
-                  key={state.name}
+                  key={state.state_code}
                   className="flex items-center justify-between hover:bg-white/10 px-3 py-2 rounded-lg transition-all cursor-pointer"
-                  onClick={() => navigate(`/state/${state.name}`)}
+                  onClick={() => navigate(`/state/${state.state_code}`)}
                 >
                   <div className="flex items-center">
                     <span className="mr-3 text-xl">{state.emoji}</span>
                     <div>
-                      <p className="font-medium">{state.name}</p>
-                      <p className="text-xs text-white/80">{state.followers} followers</p>
+                      <p className="font-medium">{state.state_name}</p>
+                      <p className="text-xs text-white/80">
+                        {state.follower_count} followers
+                      </p>
                     </div>
                   </div>
                   <button className="text-xs bg-white/20 hover:bg-white/30 px-3 py-1 rounded-full transition">

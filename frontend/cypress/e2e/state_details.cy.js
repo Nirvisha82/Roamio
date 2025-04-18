@@ -6,9 +6,21 @@ describe('State Page Details Tests', () => {
 
     it("should display state itineraries", () => {
         cy.get("h1").should("contain", "New York Itineraries");
-        cy.contains("NYC Adventure").should("be.visible");
-        cy.contains("Best places in NYC").should("be.visible");
+        cy.contains("A Weekend in NYC").should("be.visible");
+        cy.contains("Upstate New York Escape").should("be.visible");
     });
+
+    it('should show the "Follow" button by default', () => {
+        cy.get('button').contains('Follow').should('exist');
+      });
+    
+      it('should toggle follow/unfollow when clicked', () => {
+        cy.get('button').contains('Follow').click();
+        cy.get('button').should('contain', 'Unfollow');
+    
+        cy.get('button').contains('Unfollow').click();
+        cy.get('button').should('contain', 'Follow');
+      });
 
     it("should navigate to Create Post page", () => {
         cy.contains("Create Post").click();
