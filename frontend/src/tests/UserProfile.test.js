@@ -1,25 +1,39 @@
 import { render, screen, fireEvent } from "@testing-library/react";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
 import UserProfile from "../components/UserProfile";
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 
-// Mock useParams to simulate the username param
-jest.mock("react-router-dom", () => ({
-  ...jest.requireActual("react-router-dom"),
-  useParams: () => ({ username: "john_doe" }),
-  useNavigate: () => jest.fn(),
-}));
+// Helper to render with route param
+const renderWithRouter = (ui, { route = "/userprofile/john_doe" } = {}) => {
+  window.history.pushState({}, "Test page", route);
+  return render(
+    <MemoryRouter initialEntries={[route]}>
+      <Routes>
+        <Route path="/userprofile/:username" element={ui} />
+      </Routes>
+    </MemoryRouter>
+  );
+};
 
-describe("UserProfile Component", () => {
-  test("renders user profile with basic details", () => {
-    render(
-      <Router>
-        <Routes>
-          <Route path="/" element={<UserProfile />} />
-        </Routes>
-      </Router>
-    );
+// Test the Navbar
+describe("UserProfile Navbar", () => {
+  test("renders logo and navigation buttons", () => {
+    renderWithRouter(<UserProfile />);
 
-    expect(screen.getByText(/john_doe's Profile/i)).toBeInTheDocument();
+    const logo = screen.getByAltText(/Roamio Logo/i);
+    expect(logo).toBeInTheDocument();
+
+    expect(screen.getByText(/Feed/i)).toBeInTheDocument();
+    expect(screen.getByText(/My Profile/i)).toBeInTheDocument();
+    expect(screen.getByText(/Logout/i)).toBeInTheDocument();
+  });
+});
+
+// Test Profile Info
+describe("UserProfile Info Section", () => {
+  test("renders user details", async () => {
+    renderWithRouter(<UserProfile />);
+
+    expect(await screen.findByText(/john_doe's Profile/i)).toBeInTheDocument();
     expect(screen.getByText(/Full Name:/i)).toBeInTheDocument();
     expect(screen.getByText(/John Doe/i)).toBeInTheDocument();
     expect(screen.getByText(/Email:/i)).toBeInTheDocument();
@@ -27,89 +41,58 @@ describe("UserProfile Component", () => {
     expect(screen.getByText(/Location:/i)).toBeInTheDocument();
     expect(screen.getByText(/New York, USA/i)).toBeInTheDocument();
     expect(screen.getByText(/Bio:/i)).toBeInTheDocument();
-    expect(screen.getByText(/Traveler and foodie/i)).toBeInTheDocument();
+    expect(screen.getByText(/Traveler and foodie./i)).toBeInTheDocument();
   });
 
-  test("renders itinerary list", () => {
-    render(
-      <Router>
-        <Routes>
-          <Route path="/" element={<UserProfile />} />
-        </Routes>
-      </Router>
-    );
+  test("renders and toggles followers/following list", async () => {
+    renderWithRouter(<UserProfile />);
 
-    const itineraryTitle = screen.getByText(/A Weekend in NYC/i);
-    expect(itineraryTitle).toBeInTheDocument();
+    const followersLabel = screen.getByText(/Followers/i);
+    fireEvent.click(followersLabel);
 
-    const description = screen.getByText(/Explore Times Square, Central Park, and Broadway!/i);
-    expect(description).toBeInTheDocument();
+    expect(await screen.findByText(/jane_doe/i)).toBeInTheDocument();
 
-    const highlights = screen.getByText(/Highlights:/i);
-    expect(highlights).toBeInTheDocument();
+    fireEvent.click(screen.getByText(/Following/i));
+    expect(await screen.findByText(/travelpage/i)).toBeInTheDocument();
+  });
+
+  test("clicking follower navigates to their profile", () => {
+    renderWithRouter(<UserProfile />);
+
+    const followersLabel = screen.getByText(/Followers/i);
+    fireEvent.click(followersLabel);
+
+    const follower = screen.getByText(/jane_doe/i);
+    fireEvent.click(follower);
+  });
+
+  test("clicking follow/unfollow button toggles state", async () => {
+    renderWithRouter(<UserProfile />);
+
+    const followBtn = await screen.findByText(/Unfollow -/i);
+    fireEvent.click(followBtn);
+    expect(screen.getByText(/Follow \+/i)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText(/Follow \+/i));
+    expect(screen.getByText(/Unfollow -/i)).toBeInTheDocument();
+  });
+});
+
+// Test Itinerary Section
+describe("UserProfile Itineraries", () => {
+  test("renders user itineraries", async () => {
+    renderWithRouter(<UserProfile />);
+
+    expect(await screen.findByText(/A Weekend in NYC/i)).toBeInTheDocument();
+    expect(screen.getByText(/Explore Times Square, Central Park, and Broadway!/i)).toBeInTheDocument();
     expect(screen.getByText(/Central Park, Broadway/i)).toBeInTheDocument();
+    expect(screen.getByText(/Try the street food/i)).toBeInTheDocument();
   });
 
-  test("renders and toggles followers list", () => {
-    render(
-      <Router>
-        <Routes>
-          <Route path="/" element={<UserProfile />} />
-        </Routes>
-      </Router>
-    );
+  test("clicking itinerary navigates to full post", async () => {
+    renderWithRouter(<UserProfile />);
 
-    const followersHeading = screen.getByText(/Followers/i);
-    fireEvent.click(followersHeading);
-
-    expect(screen.getByText(/jane_doe/i)).toBeInTheDocument();
-  });
-
-  test("renders and toggles following list", () => {
-    render(
-      <Router>
-        <Routes>
-          <Route path="/" element={<UserProfile />} />
-        </Routes>
-      </Router>
-    );
-
-    const followingsHeading = screen.getByText(/Following/i);
-    fireEvent.click(followingsHeading);
-
-    expect(screen.getByText(/travelpage/i)).toBeInTheDocument();
-  });
-
-  test("follow/unfollow button toggles text", () => {
-    render(
-      <Router>
-        <Routes>
-          <Route path="/" element={<UserProfile />} />
-        </Routes>
-      </Router>
-    );
-
-    const followButton = screen.getByText(/Unfollow -/i);
-    expect(followButton).toBeInTheDocument();
-
-    fireEvent.click(followButton);
-
-    const followButtonAfterClick = screen.getByText(/Follow \+/i);
-    expect(followButtonAfterClick).toBeInTheDocument();
-  });
-
-  test("navbar buttons render correctly", () => {
-    render(
-      <Router>
-        <Routes>
-          <Route path="/" element={<UserProfile />} />
-        </Routes>
-      </Router>
-    );
-
-    expect(screen.getByAltText(/Roamio Logo/i)).toBeInTheDocument();
-    expect(screen.getByText(/Feed/i)).toBeInTheDocument();
-    expect(screen.getByText(/My Profile/i)).toBeInTheDocument();
-    expect(screen.getByText(/Logout/i)).toBeInTheDocument();
+    const itinerary = await screen.findByText(/A Weekend in NYC/i);
+    fireEvent.click(itinerary);
   });
 });

@@ -1,64 +1,147 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+/* eslint-disable testing-library/no-node-access */
+import { render, screen, fireEvent, within } from "@testing-library/react";
+import { BrowserRouter as Router, MemoryRouter, Routes, Route } from "react-router-dom";
 import StatePage from "../components/StatePage";
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 
-// Helper for rendering with route params
-const renderWithRouter = (stateCode = "NY") => {
+// Mock the 'country-state-city' module
+jest.mock("country-state-city", () => ({
+  State: {
+    getStatesOfCountry: () => [
+      { name: "California", isoCode: "CA" },
+      { name: "New York", isoCode: "NY" },
+      { name: "Texas", isoCode: "TX" }
+    ]
+  }
+}));
+
+// Test Navbar
+describe("Navbar", () => {
+  test("renders navbar with logo and buttons", () => {
     render(
-      <Router>
+      <MemoryRouter initialEntries={["/state/CA"]}>
         <Routes>
           <Route path="/state/:stateCode" element={<StatePage />} />
         </Routes>
-      </Router>
+      </MemoryRouter>
     );
-  
-    // Simulate being on the correct URL
-    window.history.pushState({}, "Test page", `/state/${stateCode}`);
-};
 
-// Test the Sidebar
+    //expect(screen.getByAltText(/Roamio Logo/i)).toBeInTheDocument();
+    expect(screen.getByTestId("feed-button")).toBeInTheDocument();
+    expect(screen.getByTestId("profile-button")).toBeInTheDocument();
+    expect(screen.getByTestId("logout-button")).toBeInTheDocument();
+  });
+
+  test("clicking Logout removes user and navigates", () => {
+    render(
+      <MemoryRouter initialEntries={["/state/CA"]}>
+        <Routes>
+          <Route path="/state/:stateCode" element={<StatePage />} />
+          <Route path="/" element={<div>Roamio <a href="/login">Get Started</a></div>} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    const logoutButton = screen.getByTestId("logout-button");
+    fireEvent.click(logoutButton);
+    expect(screen.getByText(/Roamio/i)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Get Started/i })).toBeInTheDocument();
+  });
+});
+
+// Test Sidebar
 describe("Sidebar", () => {
   test("renders trending states", () => {
-    renderWithRouter();
-    expect(screen.getByText(/Trending/i)).toBeInTheDocument();
-    expect(screen.getByText(/California/i)).toBeInTheDocument();
-    expect(screen.getByText(/Texas/i)).toBeInTheDocument();
+    render(
+      <MemoryRouter initialEntries={["/state/CA"]}>
+        <Routes>
+          <Route path="/state/:stateCode" element={<StatePage />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    const trendingContainer = screen.getByText(/Trending States/i).closest("div");
+    const trendingWithin = within(trendingContainer);
+
+    const california = trendingWithin.getByText(/California/i);
+    const newYork = trendingWithin.getByText(/^New York$/i); // Use regex to match exact name
+    const texas = trendingWithin.getByText(/Texas/i);
+
+    expect(california).toBeInTheDocument();
+    expect(newYork).toBeInTheDocument();
+    expect(texas).toBeInTheDocument();
   });
 
-  test("clicking a trending state navigates to that state page", () => {
-    renderWithRouter();
-    const stateLink = screen.getByText(/California/i);
-    fireEvent.click(stateLink);
+  test("clicking a trending state navigates to state page", () => {
+    render(
+      <MemoryRouter initialEntries={["/state/CA"]}>
+        <Routes>
+          <Route path="/state/:stateCode" element={<StatePage />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    const trendingContainer = screen.getByText(/Trending States/i).closest("div");
+    const trendingWithin = within(trendingContainer);
+
+    const newYork = trendingWithin.getByText(/^New York$/i);
+    fireEvent.click(newYork);
+
+    // Optional: Test navigation if you mock `useNavigate`
   });
 });
 
-// Test Follow/Unfollow
-describe("Follow/Unfollow Button", () => {
-  test("shows Follow button initially", () => {
-    renderWithRouter();
-    expect(screen.getByTestId("follow-button")).toBeInTheDocument();
+// Test Itinerary Section
+describe("Itineraries", () => {
+  test("renders itinerary list", () => {
+    render(
+      <MemoryRouter initialEntries={["/state/CA"]}>
+        <Routes>
+          <Route path="/state/:stateCode" element={<StatePage />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    const heading = screen.getByText(/California Itineraries/i);
+    const itinerary1 = screen.getByText(/A Weekend in NYC/i);
+    const itinerary2 = screen.getByText(/Upstate New York Escape/i);
+
+    expect(heading).toBeInTheDocument();
+    expect(itinerary1).toBeInTheDocument();
+    expect(itinerary2).toBeInTheDocument();
   });
 
-  test("clicking Follow switches to Unfollow", () => {
-    renderWithRouter();
-    const followButton = screen.getByTestId("follow-button");
-    fireEvent.click(followButton);
-    expect(screen.getByText(/Unfollow/i)).toBeInTheDocument();
-  });
-});
+  test("clicking an itinerary navigates to the itinerary page", () => {
+    render(
+      <MemoryRouter initialEntries={["/state/CA"]}>
+        <Routes>
+          <Route path="/state/:stateCode" element={<StatePage />} />
+        </Routes>
+      </MemoryRouter>
+    );
 
-// Test Itineraries
-describe("Itinerary Section", () => {
-  test("renders itinerary heading and list", () => {
-    renderWithRouter();
-    expect(screen.getByText(/New York Itineraries/i)).toBeInTheDocument();
-    expect(screen.getByText(/A Weekend in NYC/i)).toBeInTheDocument();
-    expect(screen.getByText(/Upstate New York Escape/i)).toBeInTheDocument();
-  });
-
-  test("clicking itinerary navigates to post page", () => {
-    renderWithRouter();
     const itinerary = screen.getByText(/A Weekend in NYC/i);
+    expect(itinerary).toBeInTheDocument(); // <- this now works!
     fireEvent.click(itinerary);
+
+  });
+});
+
+// Test Follow Button
+describe("Follow Button", () => {
+  test("displays Follow button and toggles to Unfollow", () => {
+    render(
+      <MemoryRouter initialEntries={["/state/NY"]}>
+        <Routes>
+          <Route path="/state/:stateCode" element={<StatePage />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    const followButton = screen.getByTestId("follow-button");
+    expect(followButton).toBeInTheDocument();
+
+    fireEvent.click(followButton);
+    const unfollowButton = screen.getByText(/Unfollow/i);
+    expect(unfollowButton).toBeInTheDocument();
   });
 });
