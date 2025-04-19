@@ -15,7 +15,7 @@ const renderWithRouter = (ui, { route = "/userprofile/john_doe" } = {}) => {
 };
 
 // Test the Navbar
-describe("UserProfile Navbar", () => {
+describe("Navbar", () => {
   test("renders logo and navigation buttons", () => {
     renderWithRouter(<UserProfile />);
 
