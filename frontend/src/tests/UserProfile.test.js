@@ -29,7 +29,7 @@ describe("Navbar", () => {
 });
 
 // Test Profile Info
-describe("UserProfile Info Section", () => {
+describe("Info Section", () => {
   test("renders user details", async () => {
     renderWithRouter(<UserProfile />);
 
@@ -79,7 +79,7 @@ describe("UserProfile Info Section", () => {
 });
 
 // Test Itinerary Section
-describe("UserProfile Itineraries", () => {
+describe("Itineraries", () => {
   test("renders user itineraries", async () => {
     renderWithRouter(<UserProfile />);
 
