@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"roamio/backend/api"
 	"roamio/backend/models"
 	"testing"
 
@@ -27,6 +28,7 @@ func setupRouterComments() *gin.Engine {
 func TestCreateCommentSuccess(t *testing.T) {
 	os.Setenv("TEST_MODE", "true")
 	router := setupRouterComments()
+	api.InitDatabase()
 
 	comment := models.Comments{
 		ID:          1,
@@ -49,6 +51,7 @@ func TestCreateCommentSuccess(t *testing.T) {
 func TestGetAllComments(t *testing.T) {
 	os.Setenv("TEST_MODE", "true")
 	router := setupRouterComments()
+	api.InitDatabase()
 
 	req, _ := http.NewRequest("GET", "/comments", nil)
 	w := httptest.NewRecorder()
@@ -60,6 +63,7 @@ func TestGetAllComments(t *testing.T) {
 func TestCreateCommentMissingPostId(t *testing.T) {
 	os.Setenv("TEST_MODE", "true")
 	router := setupRouterComments()
+	api.InitDatabase()
 
 	comment := models.Comments{
 		ID:          1,
@@ -81,6 +85,7 @@ func TestCreateCommentMissingPostId(t *testing.T) {
 func TestCreateCommentMissingUserId(t *testing.T) {
 	os.Setenv("TEST_MODE", "true")
 	router := setupRouterComments()
+	api.InitDatabase()
 
 	comment := models.Comments{
 		ID:          1,
@@ -102,6 +107,7 @@ func TestCreateCommentMissingUserId(t *testing.T) {
 func TestCreateCommentMissingDescription(t *testing.T) {
 	os.Setenv("TEST_MODE", "true")
 	router := setupRouterComments()
+	api.InitDatabase()
 
 	comment := models.Comments{
 		ID:     1,
@@ -123,6 +129,7 @@ func TestCreateCommentMissingDescription(t *testing.T) {
 func TestGetCommentsByPostId(t *testing.T) {
 	os.Setenv("TEST_MODE", "true")
 	router := setupRouterComments()
+	api.InitDatabase()
 
 	req, _ := http.NewRequest("GET", "/comments/post/1", nil)
 	w := httptest.NewRecorder()
