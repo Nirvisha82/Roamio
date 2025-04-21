@@ -51,6 +51,7 @@ func main() {
 	router.GET("/itineraries/state/:statecode", handlers.GetItineraryByStateId)
 	router.GET("/itineraries/post/:postID", handlers.GetItineraryByPostId)
 	router.GET("/itineraries/top-states", handlers.GetTopKStatesByFollowers)
+	router.GET("/itineraries/top-users", handlers.GetTopKUsersByFollowers)
 
 	// User related
 	router.GET("/users", handlers.GetAllUsers)
