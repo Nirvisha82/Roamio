@@ -174,7 +174,7 @@ func TestGetTopKStatesByFollowersMissingK(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
-func TestGetTopKStatesByFollowersFailureInvalidK(t *testing.T) {
+func TestGetTopKStatesByFollowersInvalidK(t *testing.T) {
 	os.Setenv("TEST_MODE", "true")
 	router := setupRouter()
 	api.InitDatabase()
@@ -210,7 +210,7 @@ func TestGetTopKUsersByFollowersMissingK(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
-func TestGetTopKUsersByFollowersFailureInvalidK(t *testing.T) {
+func TestGetTopKUsersByFollowersInvalidK(t *testing.T) {
 	os.Setenv("TEST_MODE", "true")
 	router := setupRouter()
 	api.InitDatabase()
