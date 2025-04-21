@@ -209,3 +209,15 @@ func TestGetTopKUsersByFollowersMissingK(t *testing.T) {
 
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
+
+func TestGetTopKUsersByFollowersFailureInvalidK(t *testing.T) {
+	os.Setenv("TEST_MODE", "true")
+	router := setupRouter()
+	api.InitDatabase()
+
+	req, _ := http.NewRequest("GET", "/itineraries/top-users?k=-2", nil)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+}
