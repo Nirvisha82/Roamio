@@ -273,3 +273,31 @@ func GetTopKStatesByFollowers(c *gin.Context) {
 
 	c.JSON(http.StatusOK, topStates)
 }
+
+func GetTopKUsersByFollowers(c *gin.Context) {
+	database, err := api.DatabaseConnection()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database connection failed"})
+		return
+	}
+
+	kStr := c.Query("k")
+	if kStr == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing 'k' query parameter"})
+		return
+	}
+
+	k, err := strconv.Atoi(kStr)
+	if err != nil || k <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid 'k' query parameter"})
+		return
+	}
+
+	topUsers, err := services.TopKUserByFollowers(database, k)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, topUsers)
+}
