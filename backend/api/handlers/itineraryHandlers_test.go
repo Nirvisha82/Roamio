@@ -22,6 +22,7 @@ func setupRouter() *gin.Engine {
 	router.GET("/itineraries/user/:userID", GetItineraryByUserId)
 	router.GET("/itineraries/state/:stateID", GetItineraryByStateId)
 	router.GET("/itineraries/top-states", GetTopKStatesByFollowers)
+	router.GET("/itineraries/top-users", GetTopKStatesByFollowers)
 	return router
 }
 
@@ -183,4 +184,16 @@ func TestGetTopKStatesByFollowersFailureInvalidK(t *testing.T) {
 	router.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusBadRequest, w.Code)
+}
+
+func TestGetTopKUsersByFollowersSuccess(t *testing.T) {
+	os.Setenv("TEST_MODE", "true")
+	router := setupRouter()
+	api.InitDatabase()
+
+	req, _ := http.NewRequest("GET", "/itineraries/top-users?k=2", nil)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
 }
