@@ -37,7 +37,7 @@ Roamio is your ultimate travel companion platform that makes exploring the world
 
 - Go 1.18 or higher
 - SQLite3
-- Python 3.x (for data generation scripts)
+- Python (for data generation scripts)
 
 ### Step 1: Clone Repository
 
